@@ -117,7 +117,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="">
       <div className="max-w-4xl mx-auto mt-8">
         <div className="bg-white rounded-lg shadow relative">
           {/* Tabs positioned centered above the card (overlapping) */}
