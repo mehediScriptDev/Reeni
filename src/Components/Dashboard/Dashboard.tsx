@@ -6,7 +6,7 @@ interface LentItem {
   toFrom: string;
   dueDate: string;
   returnDate: string;
-  status: 'Active' | 'Overdue';
+  status: 'Active' | 'Overdue' | 'Returned';
 }
 
 interface BorrowedItem {
@@ -24,27 +24,27 @@ const Dashboard: React.FC = () => {
   const [lentItems, setLentItems] = useState<LentItem[]>([
     {
       id: '1',
-      item: 'Camera',
-      toFrom: 'Alex',
+      item: '৳5,000',
+      toFrom: 'অ্যালেক্স',
       dueDate: '2024-05-15',
       returnDate: '',
       status: 'Active'
     },
     {
       id: '2',
-      item: 'Overdue',
-      toFrom: 'Alex',
-      dueDate: '2024-05-15',
+      item: '৳200',
+      toFrom: 'রাহুল',
+      dueDate: '2024-05-10',
       returnDate: '',
       status: 'Overdue'
     }
   ]);
 
-  const [borrowedItems] = useState<BorrowedItem[]>([
+  const [borrowedItems, setBorrowedItems] = useState<BorrowedItem[]>([
     {
       id: '1',
       item: '$50',
-      toFrom: 'Sarah',
+      toFrom: 'সারা',
       dueDate: '2024-05-01',
       returnDate: '2024-05-20',
       status: 'Returned'
@@ -64,24 +64,49 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const displayStatus = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return 'সক্রিয়';
+      case 'Overdue':
+        return 'মেয়াদোত্তীর্ণ';
+      case 'Returned':
+        return 'ফেরত হয়েছে';
+      default:
+        return status;
+    }
+  };
+
   const updateLentStatus = (id: string, status: LentItem['status']) => {
     setLentItems((prev) => prev.map((it) => (it.id === id ? { ...it, status } : it)));
   };
 
+  const updateReturnedFlag = (list: 'lent' | 'borrowed', id: string, returned: boolean) => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (list === 'lent') {
+      setLentItems((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, status: returned ? 'Returned' : 'Overdue', returnDate: returned ? today : '' } : it))
+      );
+    } else {
+      setBorrowedItems((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, status: returned ? 'Returned' : 'Overdue', returnDate: returned ? today : '' } : it))
+      );
+    }
+  };
+
   const sendReminder = (to: string, item: string) => {
-    // Placeholder for real reminder logic
-    alert(`Reminder sent to ${to} about ${item}`);
+    // Placeholder for real reminder logic — show Bangla alert for now
+    alert(`রিমাইন্ডার পাঠানো হয়েছে ${to}-কে ${item} সম্পর্কিত`);
   };
 
   const TableHeader = () => (
     <thead className="bg-gray-50 border-b">
       <tr>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">To/From</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Return Date</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">টাকার পরিমাণ</th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">কার কাছে / কার থেকে</th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">নির্ধারিত তারিখ</th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ফেরত</th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">অবস্থা</th>
       </tr>
     </thead>
   );
@@ -91,33 +116,31 @@ const Dashboard: React.FC = () => {
       <div className="max-w-4xl mx-auto mt-8">
         <div className="bg-white rounded-lg shadow relative">
           {/* Tabs positioned centered above the card (overlapping) */}
-          <div className="absolute left-1/2 -top-4 transform -translate-x-1/2 z-10 flex items-center gap-2">
+          <div className="absolute left-1/2 -top-8 transform -translate-x-1/2 z-10 flex items-center gap-4">
             <button
               onClick={() => setActiveTab('lent')}
-              className={`px-4 py-2 text-sm font-semibold rounded-t-md focus:outline-none ${
+              className={`px-8 py-3 text-lg font-semibold rounded-md focus:outline-none transition-shadow duration-150 ${
                 activeTab === 'lent'
-                  ? 'bg-white border-t border-l border-r border-gray-200 shadow'
-                  : 'bg-blue-50 text-gray-600'
+                  ? 'bg-white border border-gray-200 shadow'
+                  : 'bg-white border border-transparent text-gray-500 shadow-sm'
               }`}
             >
-              I Lent (Rent Out)
+              আমি ধার দিয়েছি
             </button>
 
             <button
               onClick={() => setActiveTab('borrowed')}
-              className={`px-4 py-2 text-sm font-semibold rounded-t-md focus:outline-none ${
+              className={`px-8 py-3 text-lg font-semibold rounded-md focus:outline-none transition-shadow duration-150 ${
                 activeTab === 'borrowed'
-                  ? 'bg-white border-t border-l border-r border-gray-200 shadow'
-                  : 'bg-blue-50 text-gray-600'
+                  ? 'bg-white border border-gray-200 shadow'
+                  : 'bg-white border border-transparent text-gray-500 shadow-sm'
               }`}
             >
-              I Borrowed (Rent In)
+              আমি ধার নিয়েছি
             </button>
           </div>
 
-          <div className="pt-6 px-6 pb-3 border-b bg-blue-50">
-            {/* spacer header to allow tabs to overlap without being inside */}
-          </div>
+          <div className="pt-10 px-6 pb-3 border-b bg-blue-50" />
 
           <div className="p-6 overflow-x-auto">
             <table className="w-full table-auto">
@@ -131,31 +154,16 @@ const Dashboard: React.FC = () => {
                       <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-3 py-1 text-xs font-medium rounded ${getStatusColor(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {item.status === 'Overdue' ? (
-                          <div className="flex gap-2">
-                            <span className="inline-flex items-center px-3 py-1 text-xs font-medium bg-red-500 text-white rounded">Overdue</span>
-                            <button
-                              onClick={() => sendReminder(item.toFrom, item.item)}
-                              className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
-                            >
-                              Send Reminder
-                            </button>
-                          </div>
-                        ) : (
+                        <div className="flex items-center gap-3">
                           <select
-                            value={item.status}
-                            onChange={(e) => updateLentStatus(item.id, e.target.value as LentItem['status'])}
-                            className="px-2 py-1 text-sm border rounded bg-white"
+                            value={item.status === 'Returned' ? 'returned' : 'not_returned'}
+                            onChange={(e) => updateReturnedFlag('lent', item.id, e.target.value === 'returned')}
+                            className="px-3 py-1 text-sm border rounded bg-white"
                           >
-                            <option value="Active">Active</option>
-                            <option value="Overdue">Overdue</option>
+                            <option value="returned">ফেরত</option>
+                            <option value="not_returned">ফেরত নয়</option>
                           </select>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -166,16 +174,18 @@ const Dashboard: React.FC = () => {
                       <td className="px-6 py-4 text-sm text-gray-900">{item.item}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{item.toFrom}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex px-3 py-1 text-xs font-medium rounded ${getStatusColor(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button className={`px-3 py-1 text-xs font-medium rounded ${getStatusColor(item.status)}`}>
-                          {item.status}
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={item.status === 'Returned' ? 'returned' : 'not_returned'}
+                            onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
+                            className="px-3 py-1 text-sm border rounded bg-white"
+                          >
+                            <option value="returned">ফেরত</option>
+                            <option value="not_returned">ফেরত নয়</option>
+                          </select>
+                        </div>
                       </td>
                     </tr>
                   ))}
