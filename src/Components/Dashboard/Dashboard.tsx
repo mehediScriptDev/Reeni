@@ -99,17 +99,22 @@ const Dashboard: React.FC = () => {
     alert(`রিমাইন্ডার পাঠানো হয়েছে ${to}-কে ${item} সম্পর্কিত`);
   };
 
-  const TableHeader = () => (
-    <thead className="bg-gray-50 border-b">
-      <tr>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">টাকার পরিমাণ</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">কার কাছে / কার থেকে</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">নির্ধারিত তারিখ</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ফেরত</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">অবস্থা</th>
-      </tr>
-    </thead>
-  );
+  const TableHeader = () => {
+    const toFromHeader = activeTab === 'lent' ? 'কাকে' : 'কার থেকে';
+    const ferotHeader = activeTab === 'lent' ? 'ফেরত দেবে' : 'ফেরত দিবো';
+
+    return (
+      <thead className="bg-gray-50 border-b">
+        <tr>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{toFromHeader}</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">নির্ধারিত তারিখ</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{ferotHeader}</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">অবস্থা</th>
+        </tr>
+      </thead>
+    );
+  };
 
   return (
     <div className="min-h-screen">
