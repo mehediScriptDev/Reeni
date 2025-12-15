@@ -3,7 +3,7 @@ import { CgProfile } from 'react-icons/cg';
 import { FcMoneyTransfer } from 'react-icons/fc';
 import { LuLayoutDashboard, LuPlus } from 'react-icons/lu';
 import { RiHistoryFill } from 'react-icons/ri';
-import { Link, NavLink } from 'react-router';
+import { NavLink } from 'react-router';
 
 const Header = () => {
     const navlinks =[

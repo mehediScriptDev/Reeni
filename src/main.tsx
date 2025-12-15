@@ -5,6 +5,7 @@ import App from './App.tsx'
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import Dashboard from './Components/Dashboard/Dashboard.tsx';
+import AddNew from './Components/Add-new/AddNew.tsx';
 
 const router = createBrowserRouter([
   {
@@ -17,7 +18,7 @@ const router = createBrowserRouter([
       },
       {
         path: "add-new",
-        element: <div>Add New Page</div>,
+        element: <AddNew />,
       },
       {
         path: "history",
