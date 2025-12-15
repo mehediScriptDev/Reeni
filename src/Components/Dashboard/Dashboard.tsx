@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Tabs, TabList, Tab } from 'react-tabs';
+import 'react-tabs/style/react-tabs.css';
 
 interface LentItem {
   id: string;
@@ -19,7 +21,8 @@ interface BorrowedItem {
 }
 
 const Dashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'lent' | 'borrowed'>('borrowed');
+  const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrowed, 1 = lent
+  const activeTab = selectedIndex === 0 ? 'borrowed' : 'lent';
 
   const [lentItems, setLentItems] = useState<LentItem[]>([
     {
@@ -51,35 +54,8 @@ const Dashboard: React.FC = () => {
     }
   ]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'bg-blue-100 text-blue-800';
-      case 'Overdue':
-        return 'bg-red-500 text-white';
-      case 'Returned':
-        return 'bg-green-500 text-white';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
 
-  const displayStatus = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'সক্রিয়';
-      case 'Overdue':
-        return 'মেয়াদোত্তীর্ণ';
-      case 'Returned':
-        return 'ফেরত হয়েছে';
-      default:
-        return status;
-    }
-  };
 
-  const updateLentStatus = (id: string, status: LentItem['status']) => {
-    setLentItems((prev) => prev.map((it) => (it.id === id ? { ...it, status } : it)));
-  };
 
   const updateReturnedFlag = (list: 'lent' | 'borrowed', id: string, returned: boolean) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -94,59 +70,48 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const sendReminder = (to: string, item: string) => {
-    // Placeholder for real reminder logic — show Bangla alert for now
-    alert(`রিমাইন্ডার পাঠানো হয়েছে ${to}-কে ${item} সম্পর্কিত`);
-  };
 
   const TableHeader = () => {
     const toFromHeader = activeTab === 'lent' ? 'কাকে' : 'কার থেকে';
-    const ferotHeader = activeTab === 'lent' ? 'ফেরত দেবে' : 'ফেরত দিবো';
+    const ferotHeader = activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'ফেরত দিবো';
 
     return (
-      <thead className="bg-gray-50 border-b">
+      <thead className="bg-gray-200 border border-gray-200">
         <tr>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{toFromHeader}</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">নির্ধারিত তারিখ</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">{ferotHeader}</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">অবস্থা</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{toFromHeader}</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নেওয়ার তারিখ</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{ferotHeader}</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অবস্থা</th>
         </tr>
       </thead>
     );
   };
 
   return (
-    <div className="">
-      <div className="max-w-4xl mx-auto mt-8">
-        <div className="bg-white rounded-lg shadow relative">
-          {/* Tabs positioned centered above the card (overlapping) */}
-          <div className="absolute left-1/2 -top-8 transform -translate-x-1/2 z-10 flex items-center gap-4">
-            <button
-              onClick={() => setActiveTab('borrowed')}
-              className={`px-8 py-3 text-lg font-semibold rounded-md focus:outline-none transition-shadow duration-150 ${
-                activeTab === 'borrowed'
-                  ? 'bg-white border border-gray-200 shadow'
-                  : 'bg-white border border-transparent text-gray-500 shadow-sm'
-              }`}
-            >
-              আমি ধার নিয়েছি
-            </button>
+    <div className=" ">
+      <div className="max-w-4xl mx-auto mt-6 lg:mt-12 border border-gray-200">
+        <div className="bg-white rounded-lg relative pt-6">
+          {/* Tabs positioned above card with diamond pointer */}
+          <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
+            <Tabs selectedIndex={selectedIndex} onSelect={(idx) => setSelectedIndex(idx)}>
+              <TabList className="flex items-center gap-2 md:gap-3 justify-center overflow-x-auto px-4 md:px-0 w-full md:w-auto">
+                <Tab
+                  className={`inline-flex items-center justify-center whitespace-nowrap relative px-4 py-2 text-sm md:px-6 md:py-2.5 font-medium rounded-lg focus:outline-none transition-colors cursor-pointer ${selectedIndex===0 ? 'bg-gray-200 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  style={selectedIndex === 0 ? { backgroundColor: '#1f7fb3', color: '#ffffff' } : undefined}
+                >
+                  আমি ধার নিয়েছি
+                </Tab>
 
-            <button
-              onClick={() => setActiveTab('lent')}
-              className={`px-8 py-3 text-lg font-semibold rounded-md focus:outline-none transition-shadow duration-150 ${
-                activeTab === 'lent'
-                  ? 'bg-white border border-gray-200 shadow'
-                  : 'bg-white border border-transparent text-gray-500 shadow-sm'
-              }`}
-            >
-              আমি ধার দিয়েছি
-            </button>
+                <Tab
+                  className={`inline-flex items-center justify-center whitespace-nowrap relative px-4 py-2 text-sm md:px-6 md:py-2.5 font-medium rounded-lg focus:outline-none transition-colors cursor-pointer ${selectedIndex===1 ? 'bg-gray-200 text-white' : 'bg-gray-200 text-gray-700'}`}
+                  style={selectedIndex === 1 ? { backgroundColor: '#1f7fb3', color: '#ffffff' } : undefined}
+                >
+                  আমি ধার দিয়েছি
+                </Tab>
+              </TabList>
+            </Tabs>
           </div>
-
-          <div className="pt-10 px-6 pb-3 border-b bg-blue-50" />
-
           <div className="p-6 overflow-x-auto">
             <table className="w-full table-auto">
               <TableHeader />
