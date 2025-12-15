@@ -112,55 +112,139 @@ const Dashboard: React.FC = () => {
               </TabList>
             </Tabs>
           </div>
-          <div className="p-6 overflow-x-auto">
-            <table className="w-full table-auto">
-              <TableHeader />
-              <tbody className="divide-y divide-gray-200">
-                {activeTab === 'lent' &&
-                  lentItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.item}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.toFrom}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <select
-                            value={item.status === 'Returned' ? 'returned' : 'not_returned'}
-                            onChange={(e) => updateReturnedFlag('lent', item.id, e.target.value === 'returned')}
-                            className="px-3 py-1 text-sm border rounded bg-white"
-                          >
-                            <option value="returned">ফেরত</option>
-                            <option value="not_returned">ফেরত নয়</option>
-                          </select>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+          <div className="p-6">
+            {/* Mobile: card list */}
+            <div className="md:hidden space-y-3">
+              {activeTab === 'lent' &&
+                lentItems.map((item) => (
+                  <div key={item.id} className="bg-white border border-gray-200 rounded-lg shadow p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
+                        <div className="text-lg font-medium text-gray-900">{item.item}</div>
+                      </div>
+                      <div className="text-sm text-gray-600">{item.status}</div>
+                    </div>
 
-                {activeTab === 'borrowed' &&
-                  borrowedItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.item}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.toFrom}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <select
-                            value={item.status === 'Returned' ? 'returned' : 'not_returned'}
-                            onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
-                            className="px-3 py-1 text-sm border rounded bg-white"
-                          >
-                            <option value="returned">ফেরত</option>
-                            <option value="not_returned">ফেরত নয়</option>
-                          </select>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
+                      <div>
+                        <div className="text-xs text-gray-500">কাকে</div>
+                        <div>{item.toFrom}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
+                        <div>{item.dueDate}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">ফেরত</div>
+                        <div>{item.returnDate || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">অবস্থা</div>
+                        <select
+                          value={item.status === 'Returned' ? 'returned' : 'not_returned'}
+                          onChange={(e) => updateReturnedFlag('lent', item.id, e.target.value === 'returned')}
+                          className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-sm rounded "
+                        >
+                          <option value="returned">ফেরত দিয়েছি</option>
+                          <option value="not_returned">ফেরত দেইনি</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+              {activeTab === 'borrowed' &&
+                borrowedItems.map((item) => (
+                  <div key={item.id} className="bg-white border rounded-lg shadow p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
+                        <div className="text-lg font-medium text-gray-900">{item.item}</div>
+                      </div>
+                      <div className="text-sm text-gray-600">{item.status}</div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
+                      <div>
+                        <div className="text-xs text-gray-500">কার থেকে</div>
+                        <div>{item.toFrom}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
+                        <div>{item.dueDate}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">ফেরত</div>
+                        <div>{item.returnDate || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">অবস্থা</div>
+                        <select
+                          value={item.status === 'Returned' ? 'returned' : 'not_returned'}
+                          onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
+                          className="mt-1 w-full px-3 py-1 text-sm border rounded bg-white"
+                        >
+                          <option value="returned">ফেরত দিয়েছি</option>
+                          <option value="not_returned">ফেরত দেইুনি</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Desktop/tablet: regular table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full table-auto">
+                <TableHeader />
+                <tbody className="divide-y divide-gray-200">
+                  {activeTab === 'lent' &&
+                    lentItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.item}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.toFrom}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <select
+                              value={item.status === 'Returned' ? 'returned' : 'not_returned'}
+                              onChange={(e) => updateReturnedFlag('lent', item.id, e.target.value === 'returned')}
+                              className="px-3 py-1 text-sm border rounded bg-white"
+                            >
+                              <option value="returned">ফেরত</option>
+                              <option value="not_returned">ফেরত নয়</option>
+                            </select>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+
+                  {activeTab === 'borrowed' &&
+                    borrowedItems.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.item}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.toFrom}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <select
+                              value={item.status === 'Returned' ? 'returned' : 'not_returned'}
+                              onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
+                              className="px-3 py-1 text-sm border rounded bg-white"
+                            >
+                              <option value="returned">ফেরত</option>
+                              <option value="not_returned">ফেরত নয়</option>
+                            </select>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
