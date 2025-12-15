@@ -19,7 +19,7 @@ interface BorrowedItem {
 }
 
 const Dashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'lent' | 'borrowed'>('lent');
+  const [activeTab, setActiveTab] = useState<'lent' | 'borrowed'>('borrowed');
 
   const [lentItems, setLentItems] = useState<LentItem[]>([
     {
@@ -123,17 +123,6 @@ const Dashboard: React.FC = () => {
           {/* Tabs positioned centered above the card (overlapping) */}
           <div className="absolute left-1/2 -top-8 transform -translate-x-1/2 z-10 flex items-center gap-4">
             <button
-              onClick={() => setActiveTab('lent')}
-              className={`px-8 py-3 text-lg font-semibold rounded-md focus:outline-none transition-shadow duration-150 ${
-                activeTab === 'lent'
-                  ? 'bg-white border border-gray-200 shadow'
-                  : 'bg-white border border-transparent text-gray-500 shadow-sm'
-              }`}
-            >
-              আমি ধার দিয়েছি
-            </button>
-
-            <button
               onClick={() => setActiveTab('borrowed')}
               className={`px-8 py-3 text-lg font-semibold rounded-md focus:outline-none transition-shadow duration-150 ${
                 activeTab === 'borrowed'
@@ -142,6 +131,17 @@ const Dashboard: React.FC = () => {
               }`}
             >
               আমি ধার নিয়েছি
+            </button>
+
+            <button
+              onClick={() => setActiveTab('lent')}
+              className={`px-8 py-3 text-lg font-semibold rounded-md focus:outline-none transition-shadow duration-150 ${
+                activeTab === 'lent'
+                  ? 'bg-white border border-gray-200 shadow'
+                  : 'bg-white border border-transparent text-gray-500 shadow-sm'
+              }`}
+            >
+              আমি ধার দিয়েছি
             </button>
           </div>
 
