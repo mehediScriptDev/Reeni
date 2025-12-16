@@ -6,6 +6,7 @@ import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import Dashboard from './Components/Dashboard/Dashboard.tsx';
 import AddNew from './Components/Add-new/AddNew.tsx';
+import History from './Components/History/History.tsx';
 
 const router = createBrowserRouter([
   {
@@ -22,7 +23,7 @@ const router = createBrowserRouter([
       },
       {
         path: "history",
-        element: <div>History Page</div>,
+        element: <History />,
       },
       {
         path: "profile",
