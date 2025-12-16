@@ -186,7 +186,7 @@ const Dashboard: React.FC = () => {
                           className="mt-1 w-full px-3 py-1 text-sm border rounded bg-white"
                         >
                           <option value="returned">ফেরত দিয়েছি</option>
-                          <option value="not_returned">ফেরত দেইুনি</option>
+                          <option value="not_returned">ফেরত দেইনি</option>
                         </select>
                       </div>
                     </div>
@@ -213,8 +213,8 @@ const Dashboard: React.FC = () => {
                               onChange={(e) => updateReturnedFlag('lent', item.id, e.target.value === 'returned')}
                               className="px-3 py-1 text-sm border rounded bg-white"
                             >
-                              <option value="returned">ফেরত</option>
-                              <option value="not_returned">ফেরত নয়</option>
+                              <option value="returned">ফেরত দিয়েছি</option>
+                              <option value="not_returned">ফেরত দেইনি</option>
                             </select>
                           </div>
                         </td>
@@ -235,8 +235,8 @@ const Dashboard: React.FC = () => {
                               onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
                               className="px-3 py-1 text-sm border rounded bg-white"
                             >
-                              <option value="returned">ফেরত</option>
-                              <option value="not_returned">ফেরত নয়</option>
+                              <option value="returned">ফেরত দিয়েছি</option>
+                              <option value="not_returned">ফেরত দেইনি</option>
                             </select>
                           </div>
                         </td>
