@@ -8,6 +8,7 @@ import Dashboard from './Components/Dashboard/Dashboard.tsx';
 import AddNew from './Components/Add-new/AddNew.tsx';
 import History from './Components/History/History.tsx';
 import Profile from './Components/Profile/Profile.tsx';
+import Auth from './Components/Auth/Auth.tsx';
 
 const router = createBrowserRouter([
   {
@@ -31,8 +32,13 @@ const router = createBrowserRouter([
         element: <Profile />,
       }
     ],
+
     ErrorBoundary: () => <div>There was an error</div>,
   },
+  {
+    path:'login',
+    element:<Auth/>
+  }
 ]);
 
 createRoot(document.getElementById('root')!).render(
