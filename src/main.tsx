@@ -7,6 +7,7 @@ import { RouterProvider } from "react-router/dom";
 import Dashboard from './Components/Dashboard/Dashboard.tsx';
 import AddNew from './Components/Add-new/AddNew.tsx';
 import History from './Components/History/History.tsx';
+import Profile from './Components/Profile/Profile.tsx';
 
 const router = createBrowserRouter([
   {
@@ -27,7 +28,7 @@ const router = createBrowserRouter([
       },
       {
         path: "profile",
-        element: <div>Profile Page</div>,
+        element: <Profile />,
       }
     ],
     ErrorBoundary: () => <div>There was an error</div>,

@@ -73,7 +73,7 @@ const Dashboard: React.FC = () => {
 
   const TableHeader = () => {
     const toFromHeader = activeTab === 'lent' ? 'কাকে' : 'কার থেকে';
-    const ferotHeader = activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'ফেরত দিবো';
+    const ferotHeader = activeTab === 'lent' ? 'ফেরত দিবে' : 'ফেরত দিবো';
 
     return (
       <thead className="bg-gray-200 border border-gray-200">
@@ -117,7 +117,7 @@ const Dashboard: React.FC = () => {
             <div className="md:hidden space-y-3">
               {activeTab === 'lent' &&
                 lentItems.map((item) => (
-                  <div key={item.id} className="bg-white border border-gray-200 rounded-lg shadow p-4">
+                  <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
@@ -156,7 +156,7 @@ const Dashboard: React.FC = () => {
 
               {activeTab === 'borrowed' &&
                 borrowedItems.map((item) => (
-                  <div key={item.id} className="bg-white border rounded-lg shadow p-4">
+                  <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
@@ -183,7 +183,7 @@ const Dashboard: React.FC = () => {
                         <select
                           value={item.status === 'Returned' ? 'returned' : 'not_returned'}
                           onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
-                          className="mt-1 w-full px-3 py-1 text-sm border rounded bg-white"
+                          className="mt-1 w-full px-3 py-1 text-sm rounded bg-gray-200 border border-gray-300"
                         >
                           <option value="returned">ফেরত দিয়েছি</option>
                           <option value="not_returned">ফেরত দেইনি</option>

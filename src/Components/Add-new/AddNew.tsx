@@ -40,7 +40,7 @@ const AddNew: React.FC = () => {
                 <select
                     value={mode}
                     onChange={(e) => setMode(e.target.value as any)}
-                    className="w-64 mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none rounded px-3 py-2"
+                    className="w-64 mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border border-gray-300 bg-gray-200 focus:border-none rounded px-3 py-2"
                 >
                     <option value="">-- নির্বাচন করুন --</option>
                     <option value="lent">আমি ধার দিয়েছি</option>
