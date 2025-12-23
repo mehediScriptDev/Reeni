@@ -1,87 +1,112 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 
-interface LentItem {
+interface Transaction {
   id: string;
-  item: string;
-  toFrom: string;
+  amount: string;
+  person: string;
   dueDate: string;
-  returnDate: string;
-  status: 'Active' | 'Overdue' | 'Returned';
-}
-
-interface BorrowedItem {
-  id: string;
-  item: string;
-  toFrom: string;
-  dueDate: string;
-  returnDate: string;
-  status: 'Returned' | 'Overdue' | 'Active';
+  returnDate?: string;
+  category: 'lent' | 'borrow';
+  returned: boolean;
 }
 
 const Dashboard: React.FC = () => {
-  const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrowed, 1 = lent
-  const activeTab = selectedIndex === 0 ? 'borrowed' : 'lent';
+  const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrow, 1 = lent
+  const activeTab = selectedIndex === 0 ? 'borrow' : 'lent';
 
-  const [lentItems, setLentItems] = useState<LentItem[]>([
-    {
-      id: '1',
-      item: '৳5,000',
-      toFrom: 'অ্যালেক্স',
-      dueDate: '2024-05-15',
-      returnDate: '',
-      status: 'Active'
-    },
-    {
-      id: '2',
-      item: '৳200',
-      toFrom: 'রাহুল',
-      dueDate: '2024-05-10',
-      returnDate: '',
-      status: 'Overdue'
-    }
-  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [borrowedItems, setBorrowedItems] = useState<BorrowedItem[]>([
-    {
-      id: '1',
-      item: '$50',
-      toFrom: 'সারা',
-      dueDate: '2024-05-01',
-      returnDate: '2024-05-20',
-      status: 'Returned'
-    }
-  ]);
+  const normalize = (raw: any): Transaction => {
+    const id = raw._id?.$oid || raw._id || raw.id || String(raw._id || Date.now());
+    const amountRaw = raw.amount ?? raw.item ?? '';
+    const amount = typeof amountRaw === 'number' ? `৳${amountRaw}` : String(amountRaw);
+    const person = raw.person || raw.toFrom || raw.from || raw.to || '';
+    const dueDate = raw.dueDate || raw.givenDate || raw.date || '';
+    const returnDate = raw.returnDate || raw.return_date || '';
+    const rawCategory = (raw.category || raw.type || '').toString();
+    const category = rawCategory === 'borrowed' || rawCategory === 'borrow' ? 'borrow' : 'lent';
+    const returned = !!raw.returned || (raw.status && /returned/i.test(raw.status)) || (!!returnDate && returnDate !== '');
 
+    return {
+      id: String(id),
+      amount: amount,
+      person: String(person),
+      dueDate: String(dueDate),
+      returnDate: String(returnDate || ''),
+      category: category as 'lent' | 'borrow',
+      returned: Boolean(returned),
+    };
+  };
 
+  const fetchTransactions = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Try backend paths: /new-list then /api/new-list
+      const tryGet = async (url: string) => axios.get(url, { timeout: 10000 });
+      let res;
+      try {
+        res = await tryGet('/new-list');
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          res = await tryGet('/api/new-list');
+        } else {
+          throw err;
+        }
+      }
 
-
-  const updateReturnedFlag = (list: 'lent' | 'borrowed', id: string, returned: boolean) => {
-    const today = new Date().toISOString().slice(0, 10);
-    if (list === 'lent') {
-      setLentItems((prev) =>
-        prev.map((it) => (it.id === id ? { ...it, status: returned ? 'Returned' : 'Overdue', returnDate: returned ? today : '' } : it))
-      );
-    } else {
-      setBorrowedItems((prev) =>
-        prev.map((it) => (it.id === id ? { ...it, status: returned ? 'Returned' : 'Overdue', returnDate: returned ? today : '' } : it))
-      );
+      const data = res.data;
+      // accept either an array or a single object
+      const arr = Array.isArray(data) ? data : [data];
+      const normalized = arr.map(normalize);
+      setTransactions(normalized);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || 'Failed to load transactions');
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchTransactions();
+    const handler = () => fetchTransactions();
+    window.addEventListener('reeni:transactionsUpdated', handler as EventListener);
+    return () => window.removeEventListener('reeni:transactionsUpdated', handler as EventListener);
+  }, []);
+
+
+
+
+  const updateReturnedStatus = (id: string, returned: boolean) => {
+    const today = new Date().toISOString().slice(0, 10);
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === id ? { ...t, returned, returnDate: returned ? today : '' } : t
+      )
+    );
+  };
+
+  const lentItems = transactions.filter((t) => t.category === 'lent');
+  const borrowedItems = transactions.filter((t) => t.category === 'borrow');
+
 
   const TableHeader = () => {
-    const toFromHeader = activeTab === 'lent' ? 'কাকে' : 'কার থেকে';
-    const ferotHeader = activeTab === 'lent' ? 'ফেরত দিবে' : 'ফেরত দিবো';
+    const personHeader = activeTab === 'lent' ? 'কাকে' : 'কার থেকে';
+    const returnHeader = activeTab === 'lent' ? 'ফেরত দিবে' : 'ফেরত দিবো';
 
     return (
       <thead className="bg-gray-200 border border-gray-200">
         <tr>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{toFromHeader}</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নেওয়ার তারিখ</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{ferotHeader}</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{personHeader}</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নেওয়ার তারিখ</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{returnHeader}</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অবস্থা</th>
         </tr>
       </thead>
@@ -113,85 +138,85 @@ const Dashboard: React.FC = () => {
             </Tabs>
           </div>
           <div className="p-6">
+            {loading && <div className="mb-4 text-sm text-gray-600">লোড হচ্ছে…</div>}
+            {error && <div className="mb-4 text-sm text-red-600">ত্রুটি: {error}</div>}
             {/* Mobile: card list */}
             <div className="md:hidden space-y-3">
-              {activeTab === 'lent' &&
-                lentItems.map((item) => (
-                  <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
-                        <div className="text-lg font-medium text-gray-900">{item.item}</div>
-                      </div>
-                      <div className="text-sm text-gray-600">{item.status}</div>
+              {lentItems.map((item) => (
+                <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
+                      <div className="text-lg font-medium text-gray-900">{item.amount}</div>
                     </div>
+                    <div className="text-sm text-gray-600">{item.returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি'}</div>
+                  </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
-                      <div>
-                        <div className="text-xs text-gray-500">কাকে</div>
-                        <div>{item.toFrom}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
-                        <div>{item.dueDate}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">ফেরত</div>
-                        <div>{item.returnDate || '-'}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">অবস্থা</div>
-                        <select
-                          value={item.status === 'Returned' ? 'returned' : 'not_returned'}
-                          onChange={(e) => updateReturnedFlag('lent', item.id, e.target.value === 'returned')}
-                          className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-sm rounded "
-                        >
-                          <option value="returned">ফেরত দিয়েছি</option>
-                          <option value="not_returned">ফেরত দেইনি</option>
-                        </select>
-                      </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
+                    <div>
+                      <div className="text-xs text-gray-500">কাকে</div>
+                      <div>{item.person}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
+                      <div>{item.dueDate}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">ফেরত</div>
+                      <div>{item.returnDate || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">অবস্থা</div>
+                      <select
+                        value={item.returned ? 'returned' : 'not_returned'}
+                        onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
+                        className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-sm rounded"
+                      >
+                        <option value="returned">ফেরত দিয়েছি</option>
+                        <option value="not_returned">ফেরত দেইনি</option>
+                      </select>
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
 
-              {activeTab === 'borrowed' &&
-                borrowedItems.map((item) => (
-                  <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
-                        <div className="text-lg font-medium text-gray-900">{item.item}</div>
-                      </div>
-                      <div className="text-sm text-gray-600">{item.status}</div>
+              {borrowedItems.map((item) => (
+                <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
+                      <div className="text-lg font-medium text-gray-900">{item.amount}</div>
                     </div>
+                    <div className="text-sm text-gray-600">{item.returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি'}</div>
+                  </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
-                      <div>
-                        <div className="text-xs text-gray-500">কার থেকে</div>
-                        <div>{item.toFrom}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
-                        <div>{item.dueDate}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">ফেরত</div>
-                        <div>{item.returnDate || '-'}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-gray-500">অবস্থা</div>
-                        <select
-                          value={item.status === 'Returned' ? 'returned' : 'not_returned'}
-                          onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
-                          className="mt-1 w-full px-3 py-1 text-sm rounded bg-gray-200 border border-gray-300"
-                        >
-                          <option value="returned">ফেরত দিয়েছি</option>
-                          <option value="not_returned">ফেরত দেইনি</option>
-                        </select>
-                      </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
+                    <div>
+                      <div className="text-xs text-gray-500">কার থেকে</div>
+                      <div>{item.person}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
+                      <div>{item.dueDate}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">ফেরত</div>
+                      <div>{item.returnDate || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">অবস্থা</div>
+                      <select
+                        value={item.returned ? 'returned' : 'not_returned'}
+                        onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
+                        className="mt-1 w-full px-3 py-1 text-sm rounded bg-gray-200 border border-gray-300"
+                      >
+                        <option value="returned">ফেরত দিয়েছি</option>
+                        <option value="not_returned">ফেরত দেইনি</option>
+                      </select>
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
 
             {/* Desktop/tablet: regular table */}
@@ -199,49 +224,47 @@ const Dashboard: React.FC = () => {
               <table className="w-full table-auto">
                 <TableHeader />
                 <tbody className="divide-y divide-gray-200">
-                  {activeTab === 'lent' &&
-                    lentItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.item}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.toFrom}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <select
-                              value={item.status === 'Returned' ? 'returned' : 'not_returned'}
-                              onChange={(e) => updateReturnedFlag('lent', item.id, e.target.value === 'returned')}
-                              className="px-3 py-1 text-sm border rounded bg-white"
-                            >
-                              <option value="returned">ফেরত দিয়েছি</option>
-                              <option value="not_returned">ফেরত দেইনি</option>
-                            </select>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                  {lentItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{item.person}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.returnDate }</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={item.returned ? 'returned' : 'not_returned'}
+                            onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
+                            className="px-3 py-1 text-sm border rounded bg-white"
+                          >
+                            <option value="returned">ফেরত দিয়েছি</option>
+                            <option value="not_returned">ফেরত দেইনি</option>
+                          </select>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
 
-                  {activeTab === 'borrowed' &&
-                    borrowedItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.item}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.toFrom}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <select
-                              value={item.status === 'Returned' ? 'returned' : 'not_returned'}
-                              onChange={(e) => updateReturnedFlag('borrowed', item.id, e.target.value === 'returned')}
-                              className="px-3 py-1 text-sm border rounded bg-white"
-                            >
-                              <option value="returned">ফেরত দিয়েছি</option>
-                              <option value="not_returned">ফেরত দেইনি</option>
-                            </select>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                  {borrowedItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{item.person}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={item.returned ? 'returned' : 'not_returned'}
+                            onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
+                            className="px-3 py-1 text-sm border rounded bg-white"
+                          >
+                            <option value="returned">ফেরত দিয়েছি</option>
+                            <option value="not_returned">ফেরত দেইনি</option>
+                          </select>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

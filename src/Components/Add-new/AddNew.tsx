@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const AddNew: React.FC = () => {
     const [mode, setMode] = useState<'lent' | 'borrowed' | ''>('');
@@ -9,26 +10,80 @@ const AddNew: React.FC = () => {
     const [fromName, setFromName] = useState('');
     const [message, setMessage] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!amount) {
-            setMessage('অনুগ্রহ করে টাকার পরিমাণ লিখুন');
+        setMessage('');
+        if (!mode) {
+            setMessage('ধরন নির্বাচন করুন');
+            return;
+        }
+        const amountValue = Number(String(amount).replace(/[^\d.]/g, ''));
+        if (!amount || isNaN(amountValue) || amountValue <= 0) {
+            setMessage('অনুগ্রহ করে সঠিক টাকার পরিমাণ লিখুন');
             return;
         }
 
-        // Build confirmation message based on mode
-        if (mode === 'lent') {
-            setMessage(`নতুন এন্ট্রি যোগ হয়েছে — পরিমাণ: ${amount}, কাকে: ${recipientName || '-'}, দেয়ার তারিখ: ${givenDate}, ফেরত: ${returnDate || '-'}`);
-        } else {
-            setMessage(`নতুন এন্ট্রি যোগ হয়েছে — পরিমাণ: ${amount}, কার থেকে: ${fromName || '-'}, নেওয়ার তারিখ: ${givenDate}, ফেরত: ${returnDate || '-'}`);
-        }
+        const payload = {
+            amount: amountValue,
+            person: (mode === 'lent' ? recipientName : fromName).trim(),
+            dueDate: givenDate,
+            returnDate: returnDate || '',
+            category: mode === 'borrowed' ? 'borrow' : 'lent',
+            returned: Boolean(returnDate && returnDate.trim() !== ''),
+        };
 
-        // reset form
-        setAmount('');
-        setGivenDate(new Date().toISOString().slice(0, 10));
-        setReturnDate('');
-        setRecipientName('');
-        setFromName('');
+        try {
+            setSubmitting(true);
+            // Try '/new-list' first; if 404/405, fallback to '/api/new-list'
+            const tryPost = async (url: string) =>
+                axios.post(url, payload, {
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 10000,
+                });
+
+            let posted = false;
+            try {
+                await tryPost('/new-list');
+                posted = true;
+            } catch (err: any) {
+                const code = err?.response?.status;
+                if (code === 404 || code === 405) {
+                    await tryPost('/api/new-list');
+                    posted = true;
+                } else {
+                    throw err;
+                }
+            }
+
+            if (!posted) {
+                throw new Error('সংরক্ষণ ব্যর্থ হয়েছে');
+            }
+            setMessage('সফলভাবে সংরক্ষণ হয়েছে');
+            // reset form
+            setAmount('');
+            setGivenDate(new Date().toISOString().slice(0, 10));
+            setReturnDate('');
+            setRecipientName('');
+            setFromName('');
+            // optional: notify other components
+            window.dispatchEvent(new Event('reeni:transactionsUpdated'));
+        } catch (err: any) {
+            const status = err?.response?.status;
+            const data = err?.response?.data;
+            const serverMessage = typeof data === 'string' ? data : data?.message;
+            let errMsg = serverMessage || err?.message || 'সংরক্ষণ ব্যর্থ হয়েছে';
+            if (err?.message === 'Network Error') {
+                errMsg = 'Network Error — ব্যাকএন্ড চলছে কি না এবং পোর্ট 3000 এ অ্যাভেইলেবল কিনা চেক করুন';
+            }
+            setMessage(`ত্রুটি${status ? ` (${status})` : ''}: ${errMsg}`);
+            // Helpful for debugging while developing
+            // eslint-disable-next-line no-console
+            console.error('POST /api/new-list failed:', { status, data, err });
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -108,7 +163,9 @@ const AddNew: React.FC = () => {
                 )}
 
                         <div className="flex items-center gap-3">
-                            <button type="submit" className="px-4 py-2 bg-[#427baa] text-white rounded">সংরক্ষণ করুন</button>
+                            <button type="submit" disabled={submitting} className="px-4 py-2 bg-[#427baa] text-white rounded disabled:opacity-60 disabled:cursor-not-allowed">
+                                {submitting ? 'সংরক্ষণ হচ্ছে…' : 'সংরক্ষণ করুন'}
+                            </button>
                             <button type="button" onClick={() => {
                                 setAmount('');
                                 setGivenDate(new Date().toISOString().slice(0,10));
