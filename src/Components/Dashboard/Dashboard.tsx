@@ -28,8 +28,10 @@ const Dashboard: React.FC = () => {
     const person = raw.person || raw.toFrom || raw.from || raw.to || '';
     const dueDate = raw.dueDate || raw.givenDate || raw.date || '';
     const returnDate = raw.returnDate || raw.return_date || '';
-    const rawCategory = (raw.category || raw.type || '').toString();
-    const category = rawCategory === 'borrowed' || rawCategory === 'borrow' ? 'borrow' : 'lent';
+    const rawCategory = String(raw.category || raw.type || '').trim().toLowerCase();
+    let category: 'lent' | 'borrow' = 'lent';
+    if (rawCategory.includes('borrow')) category = 'borrow';
+    else if (rawCategory.includes('lend') || rawCategory.includes('lent')) category = 'lent';
     const returned = !!raw.returned || (raw.status && /returned/i.test(raw.status)) || (!!returnDate && returnDate !== '');
 
     return {
@@ -95,6 +97,14 @@ const Dashboard: React.FC = () => {
   const lentItems = transactions.filter((t) => t.category === 'lent');
   const borrowedItems = transactions.filter((t) => t.category === 'borrow');
 
+  useEffect(() => {
+    // Debug helper: log active tab and counts to the browser console
+    // Helps verify normalization and filtering at runtime
+    // Remove or disable in production
+    // eslint-disable-next-line no-console
+    console.debug('Dashboard debug:', { activeTab, lentCount: lentItems.length, borrowCount: borrowedItems.length });
+  }, [transactions, activeTab]);
+
 
   const TableHeader = () => {
     const personHeader = activeTab === 'lent' ? 'কাকে' : 'কার থেকে';
@@ -140,83 +150,49 @@ const Dashboard: React.FC = () => {
           <div className="p-6">
             {loading && <div className="mb-4 text-sm text-gray-600">লোড হচ্ছে…</div>}
             {error && <div className="mb-4 text-sm text-red-600">ত্রুটি: {error}</div>}
-            {/* Mobile: card list */}
+            {/* Mobile: card list (only active tab) */}
             <div className="md:hidden space-y-3">
-              {lentItems.map((item) => (
-                <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
-                      <div className="text-lg font-medium text-gray-900">{item.amount}</div>
+              {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
+                (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
+                  <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
+                        <div className="text-lg font-medium text-gray-900">{item.amount}</div>
+                      </div>
+                      <div className="text-sm text-gray-600">{item.returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি'}</div>
                     </div>
-                    <div className="text-sm text-gray-600">{item.returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি'}</div>
-                  </div>
 
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
-                    <div>
-                      <div className="text-xs text-gray-500">কাকে</div>
-                      <div>{item.person}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
-                      <div>{item.dueDate}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">ফেরত</div>
-                      <div>{item.returnDate || '-'}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">অবস্থা</div>
-                      <select
-                        value={item.returned ? 'returned' : 'not_returned'}
-                        onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
-                        className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-sm rounded"
-                      >
-                        <option value="returned">ফেরত দিয়েছি</option>
-                        <option value="not_returned">ফেরত দেইনি</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {borrowedItems.map((item) => (
-                <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
-                      <div className="text-lg font-medium text-gray-900">{item.amount}</div>
-                    </div>
-                    <div className="text-sm text-gray-600">{item.returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি'}</div>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
-                    <div>
-                      <div className="text-xs text-gray-500">কার থেকে</div>
-                      <div>{item.person}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
-                      <div>{item.dueDate}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">ফেরত</div>
-                      <div>{item.returnDate || '-'}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500">অবস্থা</div>
-                      <select
-                        value={item.returned ? 'returned' : 'not_returned'}
-                        onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
-                        className="mt-1 w-full px-3 py-1 text-sm rounded bg-gray-200 border border-gray-300"
-                      >
-                        <option value="returned">ফেরত দিয়েছি</option>
-                        <option value="not_returned">ফেরত দেইনি</option>
-                      </select>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
+                      <div>
+                        <div className="text-xs text-gray-500">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</div>
+                        <div>{item.person}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
+                        <div>{item.dueDate}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">ফেরত</div>
+                        <div>{item.returnDate || '-'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">অবস্থা</div>
+                        <select
+                          value={item.returned ? 'returned' : 'not_returned'}
+                          onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
+                          className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-sm rounded"
+                        >
+                          <option value="returned">ফেরত দিয়েছি</option>
+                          <option value="not_returned">ফেরত দেইনি</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="p-6 bg-white border border-gray-200 rounded text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</div>
+              )}
             </div>
 
             {/* Desktop/tablet: regular table */}
@@ -224,47 +200,32 @@ const Dashboard: React.FC = () => {
               <table className="w-full table-auto">
                 <TableHeader />
                 <tbody className="divide-y divide-gray-200">
-                  {lentItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.person}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.returnDate }</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <select
-                            value={item.returned ? 'returned' : 'not_returned'}
-                            onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
-                            className="px-3 py-1 text-sm border rounded bg-white"
-                          >
-                            <option value="returned">ফেরত দিয়েছি</option>
-                            <option value="not_returned">ফেরত দেইনি</option>
-                          </select>
-                        </div>
-                      </td>
+                  {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
+                    (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{item.person}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.returnDate || '-'}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <select
+                              value={item.returned ? 'returned' : 'not_returned'}
+                              onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
+                              className="px-3 py-1 text-sm border rounded bg-white"
+                            >
+                              <option value="returned">ফেরত দিয়েছি</option>
+                              <option value="not_returned">ফেরত দেইনি</option>
+                            </select>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</td>
                     </tr>
-                  ))}
-
-                  {borrowedItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.person}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.dueDate}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{item.returnDate || '-'}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <select
-                            value={item.returned ? 'returned' : 'not_returned'}
-                            onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
-                            className="px-3 py-1 text-sm border rounded bg-white"
-                          >
-                            <option value="returned">ফেরত দিয়েছি</option>
-                            <option value="not_returned">ফেরত দেইনি</option>
-                          </select>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
