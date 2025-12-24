@@ -88,14 +88,27 @@ const Dashboard: React.FC = () => {
   const updateReturnedStatus = (id: string, returned: boolean) => {
     const today = new Date().toISOString().slice(0, 10);
     setTransactions((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, returned, returnDate: returned ? today : '' } : t
-      )
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        // When marking returned=true, set returnDate to today only if not already set.
+        if (returned) {
+          return { ...t, returned: true, returnDate: t.returnDate && t.returnDate !== '' ? t.returnDate : today };
+        }
+        // When marking returned=false, keep any previously provided returnDate (don't clear it).
+        return { ...t, returned: false };
+      })
     );
   };
 
   const lentItems = transactions.filter((t) => t.category === 'lent');
   const borrowedItems = transactions.filter((t) => t.category === 'borrow');
+
+  const getStatusLabel = (returned: boolean) => {
+    // If I lent (আমি ধার দিয়েছি) show third-person labels about the other person
+    if (activeTab === 'lent') return returned ? 'ফেরত দিয়েছে' : 'ফেরত দেয়নি';
+    // If I borrowed (আমি ধার নিয়েছি) show first-person labels about myself
+    return returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি';
+  };
 
   useEffect(() => {
     // Debug helper: log active tab and counts to the browser console
@@ -160,7 +173,7 @@ const Dashboard: React.FC = () => {
                         <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
                         <div className="text-lg font-medium text-gray-900">{item.amount}</div>
                       </div>
-                      <div className="text-sm text-gray-600">{item.returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি'}</div>
+                      <div className="text-sm text-gray-600">{getStatusLabel(item.returned)}</div>
                     </div>
 
                     <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
@@ -183,8 +196,17 @@ const Dashboard: React.FC = () => {
                           onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
                           className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-sm rounded"
                         >
-                          <option value="returned">ফেরত দিয়েছি</option>
-                          <option value="not_returned">ফেরত দেইনি</option>
+                          {activeTab === 'lent' ? (
+                            <>
+                              <option value="not_returned">ফেরত দেয়নি</option>
+                              <option value="returned">ফেরত দিয়েছে</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="returned">ফেরত দিয়েছি</option>
+                              <option value="not_returned">ফেরত দেইনি</option>
+                            </>
+                          )}
                         </select>
                       </div>
                     </div>
@@ -214,8 +236,17 @@ const Dashboard: React.FC = () => {
                               onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
                               className="px-3 py-1 text-sm border rounded bg-white"
                             >
-                              <option value="returned">ফেরত দিয়েছি</option>
-                              <option value="not_returned">ফেরত দেইনি</option>
+                              {activeTab === 'lent' ? (
+                                <>
+                                  <option value="not_returned">ফেরত দেয়নি</option>
+                                  <option value="returned">ফেরত দিয়েছে</option>
+                                </>
+                              ) : (
+                                <>
+                                  <option value="returned">ফেরত দিয়েছি</option>
+                                  <option value="not_returned">ফেরত দেইনি</option>
+                                </>
+                              )}
                             </select>
                           </div>
                         </td>
