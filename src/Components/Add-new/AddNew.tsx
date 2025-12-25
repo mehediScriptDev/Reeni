@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const AddNew: React.FC = () => {
     const [mode, setMode] = useState<'lent' | 'borrowed' | ''>('');
@@ -61,6 +62,13 @@ const AddNew: React.FC = () => {
                 throw new Error('সংরক্ষণ ব্যর্থ হয়েছে');
             }
             setMessage('সফলভাবে সংরক্ষণ হয়েছে');
+            await Swal.fire({
+                title: 'সফলভাবে সংরক্ষণ হয়েছে',
+                text: 'এন্ট্রি যোগ করা হয়েছে',
+                icon: 'success',
+                confirmButtonText: 'ঠিক আছে',
+                confirmButtonColor: '#427baa',
+            });
             // reset form
             setAmount('');
             setGivenDate(new Date().toISOString().slice(0, 10));
@@ -78,6 +86,13 @@ const AddNew: React.FC = () => {
                 errMsg = 'Network Error — ব্যাকএন্ড চলছে কি না এবং পোর্ট 3000 এ অ্যাভেইলেবল কিনা চেক করুন';
             }
             setMessage(`ত্রুটি${status ? ` (${status})` : ''}: ${errMsg}`);
+            await Swal.fire({
+                title: 'ত্রুটি',
+                text: `${status ? `স্ট্যাটাস ${status}: ` : ''}${errMsg}`,
+                icon: 'error',
+                confirmButtonText: 'ঠিক আছে',
+                confirmButtonColor: '#427baa',
+            });
             // Helpful for debugging while developing
             // eslint-disable-next-line no-console
             console.error('POST /api/new-list failed:', { status, data, err });

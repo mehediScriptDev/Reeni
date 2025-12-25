@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 
 interface Transaction {
   id: string;
@@ -127,10 +128,11 @@ const Dashboard: React.FC = () => {
       <thead className="bg-gray-200 border border-gray-200">
         <tr>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{personHeader}</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নেওয়ার তারিখ</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{returnHeader}</th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অবস্থা</th>
+          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{personHeader}</th>
+          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নেওয়ার তারিখ</th>
+          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{returnHeader}</th>
+          <th className="px-6 py-3  text-xs font-medium text-gray-600 uppercase whitespace-nowrap text-center">অবস্থা</th>
+          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অ্যাকশন</th>
         </tr>
       </thead>
     );
@@ -178,7 +180,7 @@ const Dashboard: React.FC = () => {
 
                     <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
                       <div>
-                        <div className="text-xs text-gray-500">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</div>
+                        <div className="text-xs whitespace-nowrap text-gray-500">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</div>
                         <div>{item.person}</div>
                       </div>
                       <div>
@@ -210,6 +212,20 @@ const Dashboard: React.FC = () => {
                         </select>
                       </div>
                     </div>
+                    <div className="flex gap-2 mt-4">
+                      <button 
+                        onClick={() => editTransaction(item.id)} 
+                        className="flex-1 bg-[#427baa] text-white px-3 py-2 rounded hover:bg-[#356a91] transition-colors"
+                      >
+                        এডিট
+                      </button>
+                      <button 
+                        onClick={() => deleteTransaction(item.id)} 
+                        className="flex-1 bg-red-400 text-white px-3 py-2 rounded hover:bg-red-500 transition-colors"
+                      >
+                        ডিলিট
+                      </button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -226,7 +242,7 @@ const Dashboard: React.FC = () => {
                     (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">{item.person}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.person}</td>
                         <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate}</td>
                         <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.returnDate || '-'}</td>
                         <td className="px-6 py-4">
@@ -250,11 +266,29 @@ const Dashboard: React.FC = () => {
                             </select>
                           </div>
                         </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => editTransaction(item.id)} 
+                              className="bg-[#427baa] text-white p-2 rounded hover:bg-[#356a91] transition-colors"
+                              title="এডিট"
+                            >
+                              <FaEdit className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => deleteTransaction(item.id)} 
+                              className="bg-red-400 text-white p-2 rounded hover:bg-red-500 transition-colors"
+                              title="ডিলিট"
+                            >
+                              <FaTrash className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</td>
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</td>
                     </tr>
                   )}
                 </tbody>
