@@ -45,7 +45,9 @@ const Dashboard: React.FC = () => {
     let category: 'lent' | 'borrow' = 'lent';
     if (rawCategory.includes('borrow')) category = 'borrow';
     else if (rawCategory.includes('lend') || rawCategory.includes('lent')) category = 'lent';
-    const returned = !!raw.returned || (raw.status && /returned/i.test(raw.status)) || (!!returnDate && returnDate !== '');
+    // Only consider returned if explicitly true OR status indicates returned
+    // Don't auto-set returned based on returnDate presence
+    const returned = raw.returned === true || (raw.status && /returned/i.test(raw.status));
 
     return {
       id: String(id),
@@ -103,19 +105,105 @@ const Dashboard: React.FC = () => {
 
 
 
-  const updateReturnedStatus = (id: string, returned: boolean) => {
+  const updateReturnedStatus = async (id: string, returned: boolean) => {
     const today = new Date().toISOString().slice(0, 10);
-    setTransactions((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        // When marking returned=true, set returnDate to today only if not already set.
-        if (returned) {
-          return { ...t, returned: true, returnDate: t.returnDate && t.returnDate !== '' ? t.returnDate : today };
+    
+    // If marking as returned, ask for confirmation to move to history
+    if (returned) {
+      const item = transactions.find(t => t.id === id);
+      if (!item) return;
+
+      const result = await Swal.fire({
+        title: 'ফেরত নিশ্চিত করুন',
+        text: 'এই এন্ট্রি হিস্ট্রিতে সরানো হবে। নিশ্চিত করুন?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'হ্যাঁ, হিস্ট্রিতে সরান',
+        cancelButtonText: 'বাতিল',
+        confirmButtonColor: '#427baa',
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        // Prepare history item with all data - clean the amount field
+        const cleanAmount = item.amount.replace(/[^0-9.]/g, ''); // Remove currency symbols
+        const historyItem = {
+          amount: cleanAmount || item.amount,
+          person: item.person,
+          dueDate: item.dueDate,
+          returnDate: item.returnDate && item.returnDate !== '' ? item.returnDate : today,
+          category: item.category,
+          returned: true,
+          movedToHistoryAt: new Date().toISOString(),
+        };
+
+        console.log('Attempting to move item to history:', historyItem);
+
+        // Post to history
+        const tryPost = async (url: string) => axios.post(url, historyItem, { timeout: 10000 });
+        let historyResponse;
+        try {
+          historyResponse = await tryPost('/history');
+          console.log('History POST success (/history):', historyResponse.data);
+        } catch (err: any) {
+          const status = err?.response?.status;
+          console.log('History POST failed on /history, status:', status, 'error:', err?.response?.data);
+          if (status === 404 || status === 405) {
+            historyResponse = await tryPost('/api/history');
+            console.log('History POST success (/api/history):', historyResponse.data);
+          } else {
+            // Fallback to direct backend port
+            historyResponse = await tryPost('http://localhost:5000/history');
+            console.log('History POST success (direct 5000):', historyResponse.data);
+          }
         }
-        // When marking returned=false, keep any previously provided returnDate (don't clear it).
-        return { ...t, returned: false };
-      })
-    );
+
+        // Delete from current list
+        const tryDel = async (url: string) => axios.delete(url, { timeout: 10000 });
+        try {
+          await tryDel(`/new-list/${id}`);
+        } catch (err: any) {
+          const status = err?.response?.status;
+          if (status === 404 || status === 405) {
+            await tryDel(`/api/new-list/${id}`);
+          } else {
+            throw err;
+          }
+        }
+
+        // Update UI
+        setTransactions((prev) => prev.filter((t) => t.id !== id));
+        window.dispatchEvent(new Event('reeni:transactionsUpdated'));
+        window.dispatchEvent(new Event('reeni:historyUpdated'));
+
+        await Swal.fire({
+          title: 'সফল!',
+          text: 'এন্ট্রি হিস্ট্রিতে সরানো হয়েছে',
+          icon: 'success',
+          confirmButtonText: 'ঠিক আছে',
+          confirmButtonColor: '#427baa',
+        });
+      } catch (err: any) {
+        const msg = err?.response?.data?.error || err?.message || 'হিস্ট্রিতে সরাতে ব্যর্থ';
+        setError(msg);
+        await Swal.fire({
+          title: 'ত্রুটি',
+          text: msg,
+          icon: 'error',
+          confirmButtonText: 'ঠিক আছে',
+          confirmButtonColor: '#427baa',
+        });
+      }
+    } else {
+      // If unmarking as returned, just update local state
+      setTransactions((prev) =>
+        prev.map((t) => {
+          if (t.id !== id) return t;
+          return { ...t, returned: false };
+        })
+      );
+    }
   };
 
   const lentItems = transactions.filter((t) => t.category === 'lent');

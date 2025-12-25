@@ -1,18 +1,349 @@
-import React from 'react';
-import { Link } from 'react-router';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Tabs, TabList, Tab } from 'react-tabs';
+import 'react-tabs/style/react-tabs.css';
+import { FaTrash, FaCheckCircle } from 'react-icons/fa';
+import Swal from 'sweetalert2';
+
+interface HistoryItem {
+  id: string;
+  amount: string;
+  person: string;
+  dueDate: string;
+  returnDate: string;
+  category: 'lent' | 'borrow';
+  returned: boolean;
+  movedToHistoryAt?: string;
+}
 
 const History: React.FC = () => {
-    return (
-        <div className="max-w-4xl mx-auto mt-8 p-6 bg-white rounded border border-gray-200 shadow">
-            <h2 className="text-2xl font-semibold mb-2">History</h2>
-            <p className="text-sm text-gray-600 mb-4">কোনও তথ্য পাওয়া যায়নি।</p>
+  const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrow, 1 = lent
+  const activeTab = selectedIndex === 0 ? 'borrow' : 'lent';
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-            <div className="text-sm text-gray-700">
-                <p>এখানে আপনি আগের এন্ট্রিগুলো দেখতে পাবেন। এখনো কোনো রেকর্ড নেই।</p>
-                <Link to="/add-new" className="inline-block mt-4 px-4 py-2 bg-[#427baa] text-white rounded">নতুন এন্ট্রি যোগ করুন</Link>
+  const normalize = (raw: any): HistoryItem => {
+    console.log('History raw data:', raw);
+    
+    // MongoDB returns _id as ObjectId, convert to hex string
+    let id = '';
+    if (raw?._id?.$oid) id = raw._id.$oid;
+    else if (typeof raw?._id === 'string') id = raw._id;
+    else if (raw?.id) id = String(raw.id);
+    
+    const amountRaw = raw.amount ?? raw.item ?? '';
+    const amount = typeof amountRaw === 'number' ? `৳${amountRaw}` : String(amountRaw);
+    const person = String(raw.person || raw.toFrom || raw.from || raw.to || '');
+    const dueDate = String(raw.dueDate || raw.givenDate || raw.date || '');
+    const returnDate = String(raw.returnDate || raw.return_date || '');
+    const rawCategory = String(raw.category || raw.type || '').trim().toLowerCase();
+    
+    let category: 'lent' | 'borrow' = 'lent';
+    if (rawCategory.includes('borrow')) {
+      category = 'borrow';
+    } else if (rawCategory.includes('lend') || rawCategory.includes('lent')) {
+      category = 'lent';
+    }
+
+    const normalized = {
+      id,
+      amount: amount || '-',
+      person: person || '-',
+      dueDate: dueDate || '-',
+      returnDate: returnDate || '-',
+      category: category as 'lent' | 'borrow',
+      returned: true,
+      movedToHistoryAt: raw.movedToHistoryAt || '',
+    };
+    
+    console.log('History normalized:', normalized);
+    return normalized;
+  };
+
+  const fetchHistory = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Try direct backend first since we know it works
+      let res;
+      const urls = [
+        'http://localhost:5000/history',
+        '/history',
+        '/api/history'
+      ];
+      
+      for (const url of urls) {
+        try {
+          console.log('Trying to fetch history from:', url);
+          res = await axios.get(url, { timeout: 10000 });
+          console.log('Success fetching from:', url);
+          break;
+        } catch (err: any) {
+          console.log('Failed to fetch from:', url, 'Error:', err?.message);
+          continue;
+        }
+      }
+      
+      if (!res) {
+        throw new Error('Could not fetch history from any endpoint');
+      }
+
+      const data = res.data;
+      console.log('===== HISTORY FETCH DEBUG =====');
+      console.log('Raw response data:', data);
+      console.log('Data type:', typeof data);
+      console.log('Is array?', Array.isArray(data));
+      console.log('Data length (if array):', Array.isArray(data) ? data.length : 'N/A');
+      console.log('First item:', Array.isArray(data) ? data[0] : data);
+      
+      // Handle different response formats
+      let arr: any[] = [];
+      if (Array.isArray(data)) {
+        arr = data;
+      } else if (data && typeof data === 'object') {
+        // Single object - wrap in array
+        arr = [data];
+      }
+      
+      console.log('Array before filtering:', arr);
+      console.log('Array length before filtering:', arr.length);
+      
+      // Filter out null/undefined but keep valid objects
+      arr = arr.filter(item => {
+        const isValid = item != null && typeof item === 'object';
+        if (!isValid) {
+          console.log('Filtered out invalid item:', item);
+        }
+        return isValid;
+      });
+      
+      console.log('Valid items to normalize:', arr);
+      console.log('Valid items count:', arr.length);
+      
+      const normalized = arr.length > 0 ? arr.map(normalize) : [];
+      console.log('All normalized history items:', normalized);
+      console.log('Normalized count:', normalized.length);
+      console.log('===== END DEBUG =====');
+      setHistory(normalized);
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to load history';
+      console.error('History fetch error:', errMsg, err);
+      setError(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+    const handler = () => fetchHistory();
+    window.addEventListener('reeni:historyUpdated', handler as EventListener);
+    return () => window.removeEventListener('reeni:historyUpdated', handler as EventListener);
+  }, []);
+
+  const deleteHistoryItem = async (id: string) => {
+    // Validate MongoDB ObjectId format (24 hex characters)
+    const isValidId = /^[0-9a-fA-F]{24}$/.test(id);
+    if (!id || !isValidId) {
+      await Swal.fire({
+        title: 'ত্রুটি',
+        text: 'অবৈধ আইডি। এই এন্ট্রি মুছে ফেলা যাবে না।',
+        icon: 'error',
+        confirmButtonText: 'ঠিক আছে',
+        confirmButtonColor: '#427baa',
+      });
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: 'আপনি কি নিশ্চিত?',
+      text: 'এই হিস্ট্রি এন্ট্রি মুছে ফেলতে চান?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ডিলিট করুন',
+      cancelButtonText: 'বাতিল',
+      confirmButtonColor: '#427baa',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const tryDel = async (url: string) => axios.delete(url, { timeout: 10000 });
+      try {
+        await tryDel(`/history/${id}`);
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          await tryDel(`/api/history/${id}`);
+        } else {
+          await tryDel(`http://localhost:5000/history/${id}`);
+        }
+      }
+      setHistory((prev) => prev.filter((h) => h.id !== id));
+      window.dispatchEvent(new Event('reeni:historyUpdated'));
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err?.message || 'মুছে ফেলতে ব্যর্থ');
+    }
+  };
+
+  const lentItems = history.filter((h) => h.category === 'lent');
+  const borrowedItems = history.filter((h) => h.category === 'borrow');
+
+  useEffect(() => {
+    console.debug('History debug:', { 
+      activeTab, 
+      totalHistory: history.length,
+      lentCount: lentItems.length, 
+      borrowCount: borrowedItems.length,
+      lentItems,
+      borrowedItems
+    });
+  }, [history, activeTab]);
+
+  return (
+    <>
+      <div className="">
+        <div className="max-w-4xl mx-auto mt-6 lg:mt-12 border border-gray-200">
+          <div className="bg-white rounded-lg relative pt-6">
+            {/* Tabs */}
+            <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
+              <Tabs selectedIndex={selectedIndex} onSelect={(idx) => setSelectedIndex(idx)}>
+                <TabList className="flex items-center gap-2 md:gap-3 justify-center overflow-x-auto px-4 md:px-0 w-full md:w-auto">
+                  <Tab
+                    className={`inline-flex items-center justify-center whitespace-nowrap relative px-4 py-2 text-sm md:px-6 md:py-2.5 font-medium rounded-lg focus:outline-none transition-colors cursor-pointer ${selectedIndex===0 ? 'bg-gray-200 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    style={selectedIndex === 0 ? { backgroundColor: '#1f7fb3', color: '#ffffff' } : undefined}
+                  >
+                    আমি নিয়েছিলাম
+                  </Tab>
+
+                  <Tab
+                    className={`inline-flex items-center justify-center whitespace-nowrap relative px-4 py-2 text-sm md:px-6 md:py-2.5 font-medium rounded-lg focus:outline-none transition-colors cursor-pointer ${selectedIndex===1 ? 'bg-gray-200 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    style={selectedIndex === 1 ? { backgroundColor: '#1f7fb3', color: '#ffffff' } : undefined}
+                  >
+                    আমি দিয়েছিলাম
+                  </Tab>
+                </TabList>
+              </Tabs>
             </div>
+
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  {loading && <div className="text-sm text-gray-600">লোড হচ্ছে…</div>}
+                  {error && <div className="text-sm text-red-600">ত্রুটি: {error}</div>}
+                </div>
+                <button
+                  onClick={fetchHistory}
+                  className="px-4 py-2 bg-[#427baa] text-white text-sm rounded hover:bg-[#356a91] transition-colors"
+                >
+                  রিফ্রেশ
+                </button>
+              </div>
+
+              {/* Mobile: card list */}
+              <div className="md:hidden space-y-3">
+                {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
+                  (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
+                    <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="text-xs text-gray-500">টাকার পরিমাণ</div>
+                          <div className="text-lg font-medium text-gray-900">{item.amount || '-'}</div>
+                        </div>
+                        <div className="flex items-center gap-1 text-green-600 text-sm">
+                          <FaCheckCircle className="w-4 h-4" />
+                          <span>ফেরত দিয়েছে/দিয়েছি</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-700">
+                        <div>
+                          <div className="text-xs whitespace-nowrap text-gray-500">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</div>
+                          <div>{item.person || '-'}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">{activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'নেওয়ার তারিখ'}</div>
+                          <div>{item.dueDate || '-'}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">ফেরত দেওয়ার তারিখ</div>
+                          <div>{item.returnDate || '-'}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 mt-4">
+                        <button 
+                          onClick={() => deleteHistoryItem(item.id)} 
+                          className="flex-1 bg-red-400 text-white px-3 py-2 rounded hover:bg-red-500 transition-colors"
+                        >
+                          ডিলিট
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 bg-white border border-gray-200 rounded text-center text-gray-600">কোনো হিস্ট্রি পাওয়া যায়নি</div>
+                )}
+              </div>
+
+              {/* Desktop/tablet: table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead className="bg-gray-200 border border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'নেওয়ার তারিখ'}</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">ফেরত দেওয়ার তারিখ</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অবস্থা</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
+                      (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm text-gray-900">{item.amount || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.person || '-'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate || '-'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.returnDate || '-'}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-1 text-green-600 text-sm">
+                              <FaCheckCircle className="w-4 h-4" />
+                              <span>সম্পন্ন</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <button 
+                                onClick={() => deleteHistoryItem(item.id)} 
+                                className="bg-red-400 text-white p-2 rounded hover:bg-red-500 transition-colors"
+                                title="ডিলিট"
+                              >
+                                <FaTrash className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-600">কোনো হিস্ট্রি পাওয়া যায়নি</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
-    );
+      </div>
+    </>
+  );
 };
 
 export default History;

@@ -32,7 +32,7 @@ const AddNew: React.FC = () => {
             dueDate: givenDate,
             returnDate: returnDate || '',
             category: mode === 'borrowed' ? 'borrow' : 'lent',
-            returned: Boolean(returnDate && returnDate.trim() !== ''),
+            returned: false, // New items default to not returned
         };
 
         try {
