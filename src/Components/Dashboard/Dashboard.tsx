@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import Swal from 'sweetalert2';
 
 interface Transaction {
   id: string;
@@ -14,6 +15,15 @@ interface Transaction {
   returned: boolean;
 }
 
+type EditForm = {
+  amount: string;
+  person: string;
+  dueDate: string;
+  returnDate: string;
+  returned: boolean;
+  category: 'lent' | 'borrow';
+};
+
 const Dashboard: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrow, 1 = lent
   const activeTab = selectedIndex === 0 ? 'borrow' : 'lent';
@@ -21,6 +31,8 @@ const Dashboard: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Transaction | null>(null);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
 
   const normalize = (raw: any): Transaction => {
     const id = raw._id?.$oid || raw._id || raw.id || String(raw._id || Date.now());
@@ -70,7 +82,12 @@ const Dashboard: React.FC = () => {
       const normalized = arr.map(normalize);
       setTransactions(normalized);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to load transactions');
+      setError(
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to load transactions'
+      );
     } finally {
       setLoading(false);
     }
@@ -119,6 +136,106 @@ const Dashboard: React.FC = () => {
     console.debug('Dashboard debug:', { activeTab, lentCount: lentItems.length, borrowCount: borrowedItems.length });
   }, [transactions, activeTab]);
 
+  const deleteTransaction = async (id: string) => {
+    const result = await Swal.fire({
+      title: 'আপনি কি নিশ্চিত?',
+      text: 'এই এন্ট্রি মুছে ফেলতে চান?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ডিলিট করুন',
+      cancelButtonText: 'বাতিল',
+      confirmButtonColor: '#427baa',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const tryDel = async (url: string) => axios.delete(url, { timeout: 10000 });
+      try {
+        await tryDel(`/new-list/${id}`);
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          await tryDel(`/api/new-list/${id}`);
+        } else {
+          throw err;
+        }
+      }
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      window.dispatchEvent(new Event('reeni:transactionsUpdated'));
+    } catch (err: any) {
+      setError(err?.response?.data?.error || err?.message || 'মুছে ফেলতে ব্যর্থ');
+    }
+  };
+
+  const startEdit = (item: Transaction) => {
+    setEditing(item);
+    setEditForm({
+      amount: item.amount || '',
+      person: item.person || '',
+      dueDate: item.dueDate || '',
+      returnDate: item.returnDate || '',
+      returned: item.returned,
+      category: item.category,
+    });
+  };
+
+  const handleEditChange = (field: keyof EditForm, value: string | boolean) => {
+    setEditForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const saveEdit = async () => {
+    if (!editing || !editForm) return;
+    const payload = {
+      amount: editForm.amount,
+      person: editForm.person,
+      dueDate: editForm.dueDate,
+      returnDate: editForm.returnDate,
+      returned: editForm.returned,
+      category: editForm.category,
+    };
+
+    try {
+      const tryPut = async (url: string) => axios.put(url, payload, { timeout: 10000 });
+      try {
+        await tryPut(`/new-list/${editing.id}`);
+      } catch (err: any) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          await tryPut(`/api/new-list/${editing.id}`);
+        } else {
+          throw err;
+        }
+      }
+
+      // Update UI state
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === editing.id ? { ...t, ...payload } : t))
+      );
+
+      setEditing(null);
+      setEditForm(null);
+
+      await Swal.fire({
+        title: 'আপডেট সম্পন্ন',
+        text: 'এন্ট্রি আপডেট হয়েছে',
+        icon: 'success',
+        confirmButtonText: 'ঠিক আছে',
+        confirmButtonColor: '#427baa',
+      });
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'আপডেট করতে ব্যর্থ';
+      setError(msg);
+      await Swal.fire({
+        title: 'ত্রুটি',
+        text: msg,
+        icon: 'error',
+        confirmButtonText: 'ঠিক আছে',
+        confirmButtonColor: '#427baa',
+      });
+    }
+  };
+
 
   const TableHeader = () => {
     const personHeader = activeTab === 'lent' ? 'কাকে' : 'কার থেকে';
@@ -139,9 +256,10 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className=" ">
-      <div className="max-w-4xl mx-auto mt-6 lg:mt-12 border border-gray-200">
-        <div className="bg-white rounded-lg relative pt-6">
+    <>
+      <div className=" ">
+        <div className="max-w-4xl mx-auto mt-6 lg:mt-12 border border-gray-200">
+          <div className="bg-white rounded-lg relative pt-6">
           {/* Tabs positioned above card with diamond pointer */}
           <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
             <Tabs selectedIndex={selectedIndex} onSelect={(idx) => setSelectedIndex(idx)}>
@@ -214,7 +332,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className="flex gap-2 mt-4">
                       <button 
-                        onClick={() => editTransaction(item.id)} 
+                        onClick={() => startEdit(item)} 
                         className="flex-1 bg-[#427baa] text-white px-3 py-2 rounded hover:bg-[#356a91] transition-colors"
                       >
                         এডিট
@@ -269,15 +387,15 @@ const Dashboard: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <button 
-                              onClick={() => editTransaction(item.id)} 
-                              className="bg-[#427baa] text-white p-2 rounded hover:bg-[#356a91] transition-colors"
+                              onClick={() => startEdit(item)} 
+                              className="bg-[#427baa] text-white p-2 rounded hover:bg-[#356a91] cursor-pointer transition-colors"
                               title="এডিট"
                             >
                               <FaEdit className="w-4 h-4" />
                             </button>
                             <button 
                               onClick={() => deleteTransaction(item.id)} 
-                              className="bg-red-400 text-white p-2 rounded hover:bg-red-500 transition-colors"
+                              className="bg-red-400 text-white p-2 rounded hover:bg-red-500 cursor-pointer transition-colors"
                               title="ডিলিট"
                             >
                               <FaTrash className="w-4 h-4" />
@@ -295,9 +413,112 @@ const Dashboard: React.FC = () => {
               </table>
             </div>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      {editing && editForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white w-full max-w-lg rounded-lg shadow-lg p-6 space-y-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">এন্ট্রি এডিট</h3>
+              <p className="text-sm text-gray-600">আপডেট করুন এবং সেভ করুন</p>
+            </div>
+            <button
+              onClick={() => { setEditing(null); setEditForm(null); }}
+              className="text-gray-500 hover:text-gray-700 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">টাকার পরিমাণ</label>
+              <input
+                type="text"
+                value={editForm.amount}
+                onChange={(e) => handleEditChange('amount', e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#427baa]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{editing.category === 'lent' ? 'কাকে' : 'কার থেকে'}</label>
+              <input
+                type="text"
+                value={editForm.person}
+                onChange={(e) => handleEditChange('person', e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#427baa]"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">নেওয়ার তারিখ</label>
+                <input
+                  type="date"
+                  value={editForm.dueDate}
+                  onChange={(e) => handleEditChange('dueDate', e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#427baa]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ফেরত</label>
+                <input
+                  type="date"
+                  value={editForm.returnDate}
+                  onChange={(e) => handleEditChange('returnDate', e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#427baa]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ক্যাটাগরি</label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => handleEditChange('category', e.target.value as 'lent' | 'borrow')}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#427baa]"
+                >
+                  <option value="borrow">আমি ধার নিয়েছি</option>
+                  <option value="lent">আমি ধার দিয়েছি</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">অবস্থা</label>
+                <select
+                  value={editForm.returned ? 'returned' : 'not_returned'}
+                  onChange={(e) => handleEditChange('returned', e.target.value === 'returned')}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#427baa]"
+                >
+                  <option value="returned">ফেরত দিয়েছি/দিয়েছে</option>
+                  <option value="not_returned">ফেরত দেয়নি/দেইনি</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              onClick={() => { setEditing(null); setEditForm(null); }}
+              className="px-4 py-2 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
+              বাতিল
+            </button>
+            <button
+              onClick={saveEdit}
+              className="px-4 py-2 text-sm rounded bg-[#427baa] text-white hover:bg-[#356a91]"
+            >
+              সেভ
+            </button>
+          </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
