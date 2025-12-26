@@ -9,6 +9,7 @@ import {
   signOut,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { auth } from '../firebase/firebase.init.ts';
 
@@ -20,6 +21,7 @@ interface AuthContextValue {
   signInWithGoogle: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signOutUser: () => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -37,11 +39,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    // Send verification email after registration
+    if (result.user) {
+      await sendEmailVerification(result.user);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const sendVerificationEmail = async () => {
+    if (auth.currentUser && !auth.currentUser.emailVerified) {
+      await sendEmailVerification(auth.currentUser);
+    }
   };
 
   const signInWithGoogle = async () => {
@@ -71,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const value = useMemo(
-    () => ({ user, loading, signUp, signIn, signInWithGoogle, resetPassword, signOutUser }),
+    () => ({ user, loading, signUp, signIn, signInWithGoogle, resetPassword, signOutUser, sendVerificationEmail }),
     [user, loading]
   );
 

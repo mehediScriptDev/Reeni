@@ -67,6 +67,15 @@ const Auth: React.FC = () => {
       // Save name and phone to localStorage (Firebase doesn't store these by default)
       const userProfile = { name: name.trim(), phone: phone.trim(), email };
       localStorage.setItem('reeni_user_profile', JSON.stringify(userProfile));
+      // Show verification message instead of immediate redirect
+      const { default: Swal } = await import('sweetalert2');
+      await Swal.fire({
+        title: 'ইমেইল ভেরিফিকেশন',
+        text: 'আপনার ইমেইলে একটি ভেরিফিকেশন লিংক পাঠানো হয়েছে। লিংকে ক্লিক করে ইমেইল ভেরিফাই করুন।',
+        icon: 'info',
+        confirmButtonText: 'ঠিক আছে',
+        confirmButtonColor: '#1976D2',
+      });
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'রেজিস্ট্রেশনে ত্রুটি');
