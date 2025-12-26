@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { FaTrash, FaCheckCircle } from 'react-icons/fa';
-import Swal from 'sweetalert2';
 
 interface HistoryItem {
   id: string;
@@ -146,6 +145,7 @@ const History: React.FC = () => {
   }, []);
 
   const deleteHistoryItem = async (id: string) => {
+    const { default: Swal } = await import('sweetalert2');
     // Validate MongoDB ObjectId format (24 hex characters)
     const isValidId = /^[0-9a-fA-F]{24}$/.test(id);
     if (!id || !isValidId) {
@@ -204,6 +204,14 @@ const History: React.FC = () => {
     });
   }, [history, activeTab]);
 
+  const SkeletonLoader = () => (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="bg-gray-200 rounded h-12 animate-pulse"></div>
+      ))}
+    </div>
+  );
+
   return (
     <>
       <div className="">
@@ -233,7 +241,6 @@ const History: React.FC = () => {
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  {loading && <div className="text-sm text-gray-600">লোড হচ্ছে…</div>}
                   {error && <div className="text-sm text-red-600">ত্রুটি: {error}</div>}
                 </div>
                 <button
@@ -246,7 +253,9 @@ const History: React.FC = () => {
 
               {/* Mobile: card list */}
               <div className="md:hidden space-y-3">
-                {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
+                {loading ? (
+                  <SkeletonLoader />
+                ) : (activeTab === 'lent' ? lentItems : borrowedItems).length ? (
                   (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
                     <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
                       <div className="flex items-start justify-between">
@@ -292,20 +301,22 @@ const History: React.FC = () => {
 
               {/* Desktop/tablet: table */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead className="bg-gray-200 border border-gray-200">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'নেওয়ার তারিখ'}</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">ফেরত দেওয়ার তারিখ</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অবস্থা</th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অ্যাকশন</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
-                      (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
+                {loading ? (
+                  <SkeletonLoader />
+                ) : (activeTab === 'lent' ? lentItems : borrowedItems).length ? (
+                  <table className="w-full table-auto">
+                    <thead className="bg-gray-200 border border-gray-200">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'নেওয়ার তারিখ'}</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">ফেরত দেওয়ার তারিখ</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অবস্থা</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অ্যাকশন</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {(activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 text-sm text-gray-900">{item.amount || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.person || '-'}</td>
@@ -329,14 +340,12 @@ const History: React.FC = () => {
                             </div>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="px-6 py-8 text-center text-gray-600">কোনো হিস্ট্রি পাওয়া যায়নি</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="p-6 bg-white border border-gray-200 rounded text-center text-gray-600">কোনো হিস্ট্রি পাওয়া যায়নি</div>
+                )}
               </div>
             </div>
           </div>

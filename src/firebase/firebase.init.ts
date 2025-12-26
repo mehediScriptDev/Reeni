@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { indexedDBLocalPersistence, initializeAuth } from 'firebase/auth';
 
 // Firebase configuration sourced from env (keep secrets out of source)
 const firebaseConfig = {
@@ -19,4 +19,8 @@ if (!firebaseConfig.apiKey) {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
+// Use indexedDB persistence only (faster than default which tries multiple)
+export const auth = initializeAuth(app, {
+  persistence: indexedDBLocalPersistence,
+});

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useLocation, useNavigate } from 'react-router';
 
 const Auth: React.FC = () => {
   const [tab, setTab] = useState<'login' | 'register'>('login');
@@ -10,13 +11,23 @@ const Auth: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const { signIn, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resetPassword, loading, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from || '/';
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate(from, { replace: true });
+    }
+  }, [loading, user, from, navigate]);
 
   const handleGoogle = async () => {
     try {
       setError(null);
       setBusy(true);
       await signInWithGoogle();
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'গুগল সাইনইনে ত্রুটি');
     } finally {
@@ -30,6 +41,7 @@ const Auth: React.FC = () => {
       setError(null);
       setBusy(true);
       await signIn(email, password);
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'লগইনে ত্রুটি');
     } finally {
@@ -47,7 +59,7 @@ const Auth: React.FC = () => {
       setError(null);
       setBusy(true);
       await signUp(email, password);
-      setTab('login');
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'রেজিস্ট্রেশনে ত্রুটি');
     } finally {
@@ -151,9 +163,7 @@ const Auth: React.FC = () => {
                 গুগল দিয়ে চালিয়ে যান
               </button>
 
-              <div className="text-center mt-4">
-                <a onClick={() => setTab('register')} className="text-sm text-[#1976D2] cursor-pointer hover:underline">অ্যাকাউন্ট তৈরি করুন</a>
-              </div>
+              
             </form>
           ) : (
             <form onSubmit={submitRegister} className="mt-6 space-y-4">
@@ -199,9 +209,7 @@ const Auth: React.FC = () => {
 
               <button className="w-full bg-[#1976D2] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1565C0] disabled:opacity-60" disabled={busy}>রেজিস্টার</button>
 
-              <div className="text-center mt-4">
-                <a onClick={() => setTab('login')} className="text-sm text-[#1976D2] cursor-pointer hover:underline">আগে থেকে অ্যাকাউন্ট আছে? লগইন</a>
-              </div>
+             
             </form>
           )}
         </div>

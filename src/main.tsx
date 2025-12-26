@@ -1,55 +1,64 @@
-import { StrictMode } from 'react';
+import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App.tsx';
 import {
   createBrowserRouter,
   RouterProvider,
-  Navigate,
-  useLocation,
 } from 'react-router';
-import Dashboard from './Components/Dashboard/Dashboard.tsx';
-import AddNew from './Components/Add-new/AddNew.tsx';
-import History from './Components/History/History.tsx';
-import Profile from './Components/Profile/Profile.tsx';
-import Auth from './Components/Auth/Auth.tsx';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
-const ProtectedApp: React.FC = () => {
-  const { user, loading } = useAuth();
-  const location = useLocation();
+// Lazy-load route components and Auth for code-splitting
+const Dashboard = lazy(() => import('./Components/Dashboard/Dashboard.tsx'));
+const AddNew = lazy(() => import('./Components/Add-new/AddNew.tsx'));
+const History = lazy(() => import('./Components/History/History.tsx'));
+const Profile = lazy(() => import('./Components/Profile/Profile.tsx'));
+const Auth = lazy(() => import('./Components/Auth/Auth.tsx'));
+const ProtectedApp = lazy(() => import('./ProtectedApp.tsx'));
 
-  if (loading) {
-    return <div className="p-6 text-center text-gray-600">Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
-  }
-
-  return <App />;
-};
+const LoadingFallback = () => (
+  <div className="p-6 text-center text-gray-600">লোড হচ্ছে…</div>
+);
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <ProtectedApp />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <ProtectedApp />
+      </Suspense>
+    ),
     children: [
       {
         path: "/",
-        element: <Dashboard />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Dashboard />
+          </Suspense>
+        ),
       },
       {
         path: "add-new",
-        element: <AddNew />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <AddNew />
+          </Suspense>
+        ),
       },
       {
         path: "history",
-        element: <History />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <History />
+          </Suspense>
+        ),
       },
       {
         path: "profile",
-        element: <Profile />,
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Profile />
+          </Suspense>
+        ),
       }
     ],
 
@@ -57,7 +66,11 @@ const router = createBrowserRouter([
   },
   {
     path:'login',
-    element:<Auth/>
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <Auth />
+      </Suspense>
+    )
   }
 ]);
 

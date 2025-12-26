@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
-import Swal from 'sweetalert2';
 
 interface Transaction {
   id: string;
@@ -27,9 +26,11 @@ type EditForm = {
 const Dashboard: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrow, 1 = lent
   const activeTab = selectedIndex === 0 ? 'borrow' : 'lent';
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
@@ -45,8 +46,6 @@ const Dashboard: React.FC = () => {
     let category: 'lent' | 'borrow' = 'lent';
     if (rawCategory.includes('borrow')) category = 'borrow';
     else if (rawCategory.includes('lend') || rawCategory.includes('lent')) category = 'lent';
-    // Only consider returned if explicitly true OR status indicates returned
-    // Don't auto-set returned based on returnDate presence
     const returned = raw.returned === true || (raw.status && /returned/i.test(raw.status));
 
     return {
@@ -64,7 +63,6 @@ const Dashboard: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // Try backend paths: /new-list then /api/new-list
       const tryGet = async (url: string) => axios.get(url, { timeout: 10000 });
       let res;
       try {
@@ -79,7 +77,6 @@ const Dashboard: React.FC = () => {
       }
 
       const data = res.data;
-      // accept either an array or a single object
       const arr = Array.isArray(data) ? data : [data];
       const normalized = arr.map(normalize);
       setTransactions(normalized);
@@ -106,6 +103,7 @@ const Dashboard: React.FC = () => {
 
 
   const updateReturnedStatus = async (id: string, returned: boolean) => {
+    const { default: Swal } = await import('sweetalert2');
     const today = new Date().toISOString().slice(0, 10);
     
     // If marking as returned, ask for confirmation to move to history
@@ -208,6 +206,10 @@ const Dashboard: React.FC = () => {
 
   const lentItems = transactions.filter((t) => t.category === 'lent');
   const borrowedItems = transactions.filter((t) => t.category === 'borrow');
+  
+  const currentTabItems = activeTab === 'lent' ? lentItems : borrowedItems;
+  const totalPages = Math.ceil(currentTabItems.length / itemsPerPage);
+  const paginatedItems = currentTabItems.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const getStatusLabel = (returned: boolean) => {
     // If I lent (আমি ধার দিয়েছি) show third-person labels about the other person
@@ -225,6 +227,7 @@ const Dashboard: React.FC = () => {
   }, [transactions, activeTab]);
 
   const deleteTransaction = async (id: string) => {
+    const { default: Swal } = await import('sweetalert2');
     const result = await Swal.fire({
       title: 'আপনি কি নিশ্চিত?',
       text: 'এই এন্ট্রি মুছে ফেলতে চান?',
@@ -274,6 +277,7 @@ const Dashboard: React.FC = () => {
 
   const saveEdit = async () => {
     if (!editing || !editForm) return;
+    const { default: Swal } = await import('sweetalert2');
     const payload = {
       amount: editForm.amount,
       person: editForm.person,
@@ -343,6 +347,18 @@ const Dashboard: React.FC = () => {
     );
   };
 
+  const SkeletonLoader = () => (
+    <div className="space-y-4 p-4">
+      {/* Large hero skeleton that becomes LCP element */}
+      <div className="bg-gray-200 rounded-lg h-32 animate-pulse flex items-center justify-center">
+        <span className="text-gray-400 text-lg">ডেটা লোড হচ্ছে...</span>
+      </div>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="bg-gray-200 rounded h-14 animate-pulse"></div>
+      ))}
+    </div>
+  );
+
   return (
     <>
       <div className=" ">
@@ -350,7 +366,7 @@ const Dashboard: React.FC = () => {
           <div className="bg-white rounded-lg relative pt-6">
           {/* Tabs positioned above card with diamond pointer */}
           <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
-            <Tabs selectedIndex={selectedIndex} onSelect={(idx) => setSelectedIndex(idx)}>
+            <Tabs selectedIndex={selectedIndex} onSelect={(idx) => { setSelectedIndex(idx); setPage(1); }}>
               <TabList className="flex items-center gap-2 md:gap-3 justify-center overflow-x-auto px-4 md:px-0 w-full md:w-auto">
                 <Tab
                   className={`inline-flex items-center justify-center whitespace-nowrap relative px-4 py-2 text-sm md:px-6 md:py-2.5 font-medium rounded-lg focus:outline-none transition-colors cursor-pointer ${selectedIndex===0 ? 'bg-gray-200 text-white' : 'bg-gray-200 text-gray-700'}`}
@@ -369,12 +385,13 @@ const Dashboard: React.FC = () => {
             </Tabs>
           </div>
           <div className="p-6">
-            {loading && <div className="mb-4 text-sm text-gray-600">লোড হচ্ছে…</div>}
             {error && <div className="mb-4 text-sm text-red-600">ত্রুটি: {error}</div>}
             {/* Mobile: card list (only active tab) */}
             <div className="md:hidden space-y-3">
-              {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
-                (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
+              {loading ? (
+                <SkeletonLoader />
+              ) : paginatedItems.length ? (
+                (paginatedItems).map((item) => (
                   <div key={item.id} className="bg-white border border-gray-300 rounded-lg shadow p-4">
                     <div className="flex items-start justify-between">
                       <div>
@@ -444,8 +461,8 @@ const Dashboard: React.FC = () => {
               <table className="w-full table-auto">
                 <TableHeader />
                 <tbody className="divide-y divide-gray-200">
-                  {(activeTab === 'lent' ? lentItems : borrowedItems).length ? (
-                    (activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
+                  {loading ? null : paginatedItems.length ? (
+                    (paginatedItems).map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.person}</td>
@@ -500,6 +517,29 @@ const Dashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-2 border rounded disabled:opacity-50 hover:bg-gray-50"
+                >
+                  আগে
+                </button>
+                <span className="text-sm text-gray-600">
+                  পৃষ্ঠা {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-2 border rounded disabled:opacity-50 hover:bg-gray-50"
+                >
+                  পরে
+                </button>
+              </div>
+            )}
           </div>
           </div>
         </div>

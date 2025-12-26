@@ -22,8 +22,15 @@ const Profile: React.FC = () => {
     const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
 
     useEffect(() => {
-        // no-op: profile initial state comes from defaults (no localStorage)
-    }, []);
+        if (!user || editing) return;
+
+        setProfile({
+            name: user.displayName || defaultProfile.name,
+            email: user.email || defaultProfile.email,
+            phone: user.phoneNumber || defaultProfile.phone,
+            avatar: user.photoURL || undefined,
+        });
+    }, [user, editing]);
 
     useEffect(() => {
         setAvatarPreview(profile.avatar);
@@ -106,17 +113,7 @@ const Profile: React.FC = () => {
                         )}
                     </div>
 
-                    {editing && (
-                        <label className="mt-3 text-xs text-gray-600 flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleAvatar(e.target.files?.[0])}
-                                className="hidden"
-                            />
-                            <span className="px-2 py-1 text-sm border rounded">অবতার আপলোড</span>
-                        </label>
-                    )}
+
 
                     
                 </div>
