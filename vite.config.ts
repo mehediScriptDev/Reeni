@@ -24,13 +24,15 @@ export default defineConfig({
       },
     },
     minify: 'terser',
-    terserOptions: {
+    // Cast to `any` because Vite's bundled types may differ from installed terser types
+    // We keep the compress settings to drop console/debugger in production builds.
+    terserOptions: ( {
       compress: {
         drop_console: true,
         drop_debugger: true,
         passes: 2, // Multiple passes for better compression
       },
-    },
+    } as any ),
     chunkSizeWarningLimit: 600,
     cssCodeSplit: true,
     cssMinify: 'lightningcss',
