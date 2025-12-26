@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { FaTrash, FaCheckCircle } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 interface HistoryItem {
   id: string;
@@ -16,6 +18,7 @@ interface HistoryItem {
 }
 
 const History: React.FC = () => {
+  const { user } = useAuth();
   const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrow, 1 = lent
   const activeTab = selectedIndex === 0 ? 'borrow' : 'lent';
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -61,32 +64,14 @@ const History: React.FC = () => {
   };
 
   const fetchHistory = async () => {
+    if (!user?.uid) return;
     setLoading(true);
     setError(null);
     try {
-      // Try direct backend first since we know it works
-      let res;
-      const urls = [
-        'http://localhost:5000/history',
-        '/history',
-        '/api/history'
-      ];
-      
-      for (const url of urls) {
-        try {
-          console.log('Trying to fetch history from:', url);
-          res = await axios.get(url, { timeout: 10000 });
-          console.log('Success fetching from:', url);
-          break;
-        } catch (err: any) {
-          console.log('Failed to fetch from:', url, 'Error:', err?.message);
-          continue;
-        }
-      }
-      
-      if (!res) {
-        throw new Error('Could not fetch history from any endpoint');
-      }
+      const res = await axios.get(`${API_BASE_URL}/history`, { 
+        timeout: 10000,
+        params: { userId: user.uid }
+      });
 
       const data = res.data;
       console.log('===== HISTORY FETCH DEBUG =====');
@@ -138,11 +123,13 @@ const History: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchHistory();
+    if (user?.uid) {
+      fetchHistory();
+    }
     const handler = () => fetchHistory();
     window.addEventListener('reeni:historyUpdated', handler as EventListener);
     return () => window.removeEventListener('reeni:historyUpdated', handler as EventListener);
-  }, []);
+  }, [user?.uid]);
 
   const deleteHistoryItem = async (id: string) => {
     const { default: Swal } = await import('sweetalert2');
@@ -172,17 +159,7 @@ const History: React.FC = () => {
     if (!result.isConfirmed) return;
 
     try {
-      const tryDel = async (url: string) => axios.delete(url, { timeout: 10000 });
-      try {
-        await tryDel(`/history/${id}`);
-      } catch (err: any) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          await tryDel(`/api/history/${id}`);
-        } else {
-          await tryDel(`http://localhost:5000/history/${id}`);
-        }
-      }
+      await axios.delete(`${API_BASE_URL}/history/${id}`, { timeout: 10000 });
       setHistory((prev) => prev.filter((h) => h.id !== id));
       window.dispatchEvent(new Event('reeni:historyUpdated'));
     } catch (err: any) {

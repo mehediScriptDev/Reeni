@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 interface Transaction {
   id: string;
@@ -24,6 +26,7 @@ type EditForm = {
 };
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrow, 1 = lent
   const activeTab = selectedIndex === 0 ? 'borrow' : 'lent';
   const [page, setPage] = useState(1);
@@ -60,21 +63,14 @@ const Dashboard: React.FC = () => {
   };
 
   const fetchTransactions = async () => {
+    if (!user?.uid) return; // Don't fetch if no user
     setLoading(true);
     setError(null);
     try {
-      const tryGet = async (url: string) => axios.get(url, { timeout: 10000 });
-      let res;
-      try {
-        res = await tryGet('/new-list');
-      } catch (err: any) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          res = await tryGet('/api/new-list');
-        } else {
-          throw err;
-        }
-      }
+      const res = await axios.get(`${API_BASE_URL}/new-list`, { 
+        timeout: 10000,
+        params: { userId: user.uid } // Filter by user
+      });
 
       const data = res.data;
       const arr = Array.isArray(data) ? data : [data];
@@ -93,11 +89,13 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTransactions();
+    if (user?.uid) {
+      fetchTransactions();
+    }
     const handler = () => fetchTransactions();
     window.addEventListener('reeni:transactionsUpdated', handler as EventListener);
     return () => window.removeEventListener('reeni:transactionsUpdated', handler as EventListener);
-  }, []);
+  }, [user?.uid]); // Re-fetch when user changes
 
 
 
@@ -127,6 +125,7 @@ const Dashboard: React.FC = () => {
         // Prepare history item with all data - clean the amount field
         const cleanAmount = item.amount.replace(/[^0-9.]/g, ''); // Remove currency symbols
         const historyItem = {
+          userId: user?.uid, // Associate with current user
           amount: cleanAmount || item.amount,
           person: item.person,
           dueDate: item.dueDate,
@@ -139,36 +138,10 @@ const Dashboard: React.FC = () => {
         console.log('Attempting to move item to history:', historyItem);
 
         // Post to history
-        const tryPost = async (url: string) => axios.post(url, historyItem, { timeout: 10000 });
-        let historyResponse;
-        try {
-          historyResponse = await tryPost('/history');
-          console.log('History POST success (/history):', historyResponse.data);
-        } catch (err: any) {
-          const status = err?.response?.status;
-          console.log('History POST failed on /history, status:', status, 'error:', err?.response?.data);
-          if (status === 404 || status === 405) {
-            historyResponse = await tryPost('/api/history');
-            console.log('History POST success (/api/history):', historyResponse.data);
-          } else {
-            // Fallback to direct backend port
-            historyResponse = await tryPost('http://localhost:5000/history');
-            console.log('History POST success (direct 5000):', historyResponse.data);
-          }
-        }
+        await axios.post(`${API_BASE_URL}/history`, historyItem, { timeout: 10000 });
 
         // Delete from current list
-        const tryDel = async (url: string) => axios.delete(url, { timeout: 10000 });
-        try {
-          await tryDel(`/new-list/${id}`);
-        } catch (err: any) {
-          const status = err?.response?.status;
-          if (status === 404 || status === 405) {
-            await tryDel(`/api/new-list/${id}`);
-          } else {
-            throw err;
-          }
-        }
+        await axios.delete(`${API_BASE_URL}/new-list/${id}`, { timeout: 10000 });
 
         // Update UI
         setTransactions((prev) => prev.filter((t) => t.id !== id));
@@ -241,17 +214,7 @@ const Dashboard: React.FC = () => {
     if (!result.isConfirmed) return;
 
     try {
-      const tryDel = async (url: string) => axios.delete(url, { timeout: 10000 });
-      try {
-        await tryDel(`/new-list/${id}`);
-      } catch (err: any) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          await tryDel(`/api/new-list/${id}`);
-        } else {
-          throw err;
-        }
-      }
+      await axios.delete(`${API_BASE_URL}/new-list/${id}`, { timeout: 10000 });
       setTransactions((prev) => prev.filter((t) => t.id !== id));
       window.dispatchEvent(new Event('reeni:transactionsUpdated'));
     } catch (err: any) {
@@ -288,17 +251,7 @@ const Dashboard: React.FC = () => {
     };
 
     try {
-      const tryPut = async (url: string) => axios.put(url, payload, { timeout: 10000 });
-      try {
-        await tryPut(`/new-list/${editing.id}`);
-      } catch (err: any) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          await tryPut(`/api/new-list/${editing.id}`);
-        } else {
-          throw err;
-        }
-      }
+      await axios.put(`${API_BASE_URL}/new-list/${editing.id}`, payload, { timeout: 10000 });
 
       // Update UI state
       setTransactions((prev) =>

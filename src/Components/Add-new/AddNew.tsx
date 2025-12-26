@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 const AddNew: React.FC = () => {
+    const { user } = useAuth();
     const [mode, setMode] = useState<'lent' | 'borrowed' | ''>('');
     const [amount, setAmount] = useState('');
     const [givenDate, setGivenDate] = useState<string>(new Date().toISOString().slice(0, 10));
@@ -26,6 +29,7 @@ const AddNew: React.FC = () => {
         }
 
         const payload = {
+            userId: user?.uid, // Associate with current user
             amount: amountValue,
             person: (mode === 'lent' ? recipientName : fromName).trim(),
             dueDate: givenDate,
@@ -36,30 +40,10 @@ const AddNew: React.FC = () => {
 
         try {
             setSubmitting(true);
-            // Try '/new-list' first; if 404/405, fallback to '/api/new-list'
-            const tryPost = async (url: string) =>
-                axios.post(url, payload, {
-                    headers: { 'Content-Type': 'application/json' },
-                    timeout: 10000,
-                });
-
-            let posted = false;
-            try {
-                await tryPost('/new-list');
-                posted = true;
-            } catch (err: any) {
-                const code = err?.response?.status;
-                if (code === 404 || code === 405) {
-                    await tryPost('/api/new-list');
-                    posted = true;
-                } else {
-                    throw err;
-                }
-            }
-
-            if (!posted) {
-                throw new Error('সংরক্ষণ ব্যর্থ হয়েছে');
-            }
+            await axios.post(`${API_BASE_URL}/new-list`, payload, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 10000,
+            });
             setMessage('সফলভাবে সংরক্ষণ হয়েছে');
             const { default: Swal } = await import('sweetalert2');
             await Swal.fire({
