@@ -53,15 +53,15 @@ const Profile: React.FC = () => {
         setProfile((p) => ({ ...p, [field]: value }));
     };
 
-    const handleAvatar = (file?: File) => {
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-            const res = reader.result as string;
-            setProfile((p) => ({ ...p, avatar: res }));
-        };
-        reader.readAsDataURL(file);
-    };
+    // const handleAvatar = (file?: File) => {
+    //     if (!file) return;
+    //     const reader = new FileReader();
+    //     reader.onload = () => {
+    //         const res = reader.result as string;
+    //         setProfile((p) => ({ ...p, avatar: res }));
+    //     };
+    //     reader.readAsDataURL(file);
+    // };
 
     const handleSave = () => {
         // Save to localStorage
