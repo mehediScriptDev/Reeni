@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 const Auth: React.FC = () => {
   const [tab, setTab] = useState<'login' | 'register'>('login');
@@ -6,21 +7,78 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const submitLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // placeholder: replace with real auth
-    alert(`Logging in: ${email}`);
+  const { signIn, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+
+  const handleGoogle = async () => {
+    try {
+      setError(null);
+      setBusy(true);
+      await signInWithGoogle();
+    } catch (err: any) {
+      setError(err?.message || 'গুগল সাইনইনে ত্রুটি');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const submitRegister = (e: React.FormEvent) => {
+  const submitLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setError(null);
+      setBusy(true);
+      await signIn(email, password);
+    } catch (err: any) {
+      setError(err?.message || 'লগইনে ত্রুটি');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirm) {
-      alert('পাসওয়ার্ড মিলছে না');
+      setError('পাসওয়ার্ড মিলছে না');
       return;
     }
-    alert(`Registering: ${name} <${email}>`);
+    try {
+      setError(null);
+      setBusy(true);
+      await signUp(email, password);
+      setTab('login');
+    } catch (err: any) {
+      setError(err?.message || 'রেজিস্ট্রেশনে ত্রুটি');
+    } finally {
+      setBusy(false);
+    }
   };
+
+  const handleReset = async () => {
+    if (!email) {
+      setError('ইমেইল দিন');
+      return;
+    }
+    try {
+      setError(null);
+      setBusy(true);
+      await resetPassword(email);
+      setError('পাসওয়ার্ড রিসেট মেইল পাঠানো হয়েছে');
+    } catch (err: any) {
+      setError(err?.message || 'রিসেটে ত্রুটি');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-gray-700 text-sm">লোড হচ্ছে…</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 flex items-center justify-center bg-gray-100">
@@ -68,9 +126,9 @@ const Auth: React.FC = () => {
                 />
               </div>
 
-              <button className="w-full bg-[#1976D2] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1565C0]">লগইন</button>
+              <button className="w-full bg-[#1976D2] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1565C0] disabled:opacity-60" disabled={busy}>লগইন</button>
 
-              <div className="text-center text-sm text-[#1976D2] cursor-pointer hover:underline">পাসওয়ার্ড ভুলে গেছেন?</div>
+              <div className="text-center text-sm text-[#1976D2] cursor-pointer hover:underline" onClick={handleReset}>পাসওয়ার্ড ভুলে গেছেন?</div>
 
               <div className="flex items-center gap-3 my-4">
                 <div className="flex-1 h-px bg-gray-300" />
@@ -80,8 +138,9 @@ const Auth: React.FC = () => {
 
               <button
                 type="button"
-                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50"
-                onClick={() => alert('Google auth placeholder')}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-md flex items-center justify-center gap-2 text-sm hover:bg-gray-50 disabled:opacity-60"
+                onClick={handleGoogle}
+                disabled={busy}
               >
                 <svg className="w-5 h-5" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg">
                   <path fill="#4285f4" d="M533.5 278.4c0-17.4-1.6-34-4.6-50.2H272v95.1h147.4c-6.4 34.7-25 64.1-53.3 83.8v69.6h86.1c50.3-46.4 79.3-114.6 79.3-198.3z"/>
@@ -138,7 +197,7 @@ const Auth: React.FC = () => {
                 />
               </div>
 
-              <button className="w-full bg-[#1976D2] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1565C0]">রেজিস্টার</button>
+              <button className="w-full bg-[#1976D2] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1565C0] disabled:opacity-60" disabled={busy}>রেজিস্টার</button>
 
               <div className="text-center mt-4">
                 <a onClick={() => setTab('login')} className="text-sm text-[#1976D2] cursor-pointer hover:underline">আগে থেকে অ্যাকাউন্ট আছে? লগইন</a>
@@ -146,6 +205,7 @@ const Auth: React.FC = () => {
             </form>
           )}
         </div>
+        {error && <div className="mt-4 text-sm text-center text-red-600">{error}</div>}
       </div>
     </div>
   );
