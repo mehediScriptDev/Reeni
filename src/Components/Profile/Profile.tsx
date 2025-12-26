@@ -8,11 +8,22 @@ type ProfileData = {
     avatar?: string; // data URL
 };
 
+const PROFILE_STORAGE_KEY = 'reeni_user_profile';
+
 const defaultProfile: ProfileData = {
     name: 'আপনার নাম',
     email: 'you@example.com',
     phone: '',
     avatar: undefined
+};
+
+// Load profile from localStorage
+const loadStoredProfile = (): Partial<ProfileData> => {
+    try {
+        const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
+        if (stored) return JSON.parse(stored);
+    } catch {}
+    return {};
 };
 
 const Profile: React.FC = () => {
@@ -24,11 +35,13 @@ const Profile: React.FC = () => {
     useEffect(() => {
         if (!user || editing) return;
 
+        // Merge Firebase user data with localStorage data (localStorage takes priority for name/phone)
+        const stored = loadStoredProfile();
         setProfile({
-            name: user.displayName || defaultProfile.name,
-            email: user.email || defaultProfile.email,
-            phone: user.phoneNumber || defaultProfile.phone,
-            avatar: user.photoURL || undefined,
+            name: stored.name || user.displayName || defaultProfile.name,
+            email: user.email || stored.email || defaultProfile.email,
+            phone: stored.phone || user.phoneNumber || defaultProfile.phone,
+            avatar: user.photoURL || stored.avatar || undefined,
         });
     }, [user, editing]);
 
@@ -51,13 +64,24 @@ const Profile: React.FC = () => {
     };
 
     const handleSave = () => {
-        // persist disabled (no localStorage). Just close edit mode.
+        // Save to localStorage
+        try {
+            localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+        } catch {}
         setEditing(false);
     };
 
     const handleCancel = () => {
-        // reset to defaults (no localStorage)
-        setProfile(defaultProfile);
+        // Reset to saved data
+        const stored = loadStoredProfile();
+        if (user) {
+            setProfile({
+                name: stored.name || user.displayName || defaultProfile.name,
+                email: user.email || stored.email || defaultProfile.email,
+                phone: stored.phone || user.phoneNumber || defaultProfile.phone,
+                avatar: user.photoURL || stored.avatar || undefined,
+            });
+        }
         setEditing(false);
     };
 

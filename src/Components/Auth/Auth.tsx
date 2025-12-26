@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useLocation, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 
 const Auth: React.FC = () => {
   const [tab, setTab] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const { signIn, signUp, signInWithGoogle, resetPassword, loading, user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  // Always redirect to Dashboard after login (better UX - users want to see their data)
+  // Always redirect to Dashboard after login
   const from = '/';
 
   useEffect(() => {
@@ -52,6 +52,10 @@ const Auth: React.FC = () => {
 
   const submitRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) {
+      setError('নাম দিন');
+      return;
+    }
     if (password !== confirm) {
       setError('পাসওয়ার্ড মিলছে না');
       return;
@@ -60,6 +64,9 @@ const Auth: React.FC = () => {
       setError(null);
       setBusy(true);
       await signUp(email, password);
+      // Save name and phone to localStorage (Firebase doesn't store these by default)
+      const userProfile = { name: name.trim(), phone: phone.trim(), email };
+      localStorage.setItem('reeni_user_profile', JSON.stringify(userProfile));
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err?.message || 'রেজিস্ট্রেশনে ত্রুটি');
@@ -174,6 +181,17 @@ const Auth: React.FC = () => {
                   placeholder="নাম"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1976D2] focus:border-transparent"
+                  required
+                />
+              </div>
+
+              <div>
+                <input
+                  type="tel"
+                  placeholder="ফোন নম্বর"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#1976D2] focus:border-transparent"
                 />
               </div>
