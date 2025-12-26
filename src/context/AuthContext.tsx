@@ -5,6 +5,7 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -45,7 +46,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      const { code, message } = (err as { code?: string; message?: string }) || {};
+      const popupErrors = ['auth/popup-blocked', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'];
+
+      if ((code && popupErrors.includes(code)) || message?.includes('Cross-Origin-Opener-Policy')) {
+        // Fallback for browsers/environments that block popups (e.g., COOP/COEP restrictions)
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
+      throw err;
+    }
   };
 
   const resetPassword = async (email: string) => {

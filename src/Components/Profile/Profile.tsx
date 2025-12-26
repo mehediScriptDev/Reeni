@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 type ProfileData = {
     name: string;
@@ -15,6 +16,7 @@ const defaultProfile: ProfileData = {
 };
 
 const Profile: React.FC = () => {
+    const { user, signOutUser, loading } = useAuth();
     const [profile, setProfile] = useState<ProfileData>(defaultProfile);
     const [editing, setEditing] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
@@ -52,6 +54,10 @@ const Profile: React.FC = () => {
         setEditing(false);
     };
 
+    const handleSignOut = async () => {
+        await signOutUser();
+    };
+
     return (
         <div className="max-w-4xl mx-auto mt-6 p-6 bg-white rounded-lg border border-gray-200">
             <div className="flex items-start justify-between">
@@ -78,6 +84,14 @@ const Profile: React.FC = () => {
                             </button>
                         </>
                     )}
+                    {!loading && user ? (
+                        <button
+                            onClick={handleSignOut}
+                            className="px-3 py-1.5 border border-red-200 text-red-600 rounded text-sm hover:bg-red-50"
+                        >
+                            Sign out
+                        </button>
+                    ) : null}
                 </div>
             </div>
 
