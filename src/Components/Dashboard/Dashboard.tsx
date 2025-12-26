@@ -301,13 +301,39 @@ const Dashboard: React.FC = () => {
   };
 
   const SkeletonLoader = () => (
-    <div className="space-y-4 p-4">
-      {/* Large hero skeleton that becomes LCP element */}
-      <div className="bg-gray-200 rounded-lg h-32 animate-pulse flex items-center justify-center">
-        <span className="text-gray-400 text-lg">ডেটা লোড হচ্ছে...</span>
+    <div className="space-y-3 p-4">
+      {/* Table header skeleton */}
+      <div className="hidden md:grid grid-cols-6 gap-4 bg-gray-100 rounded-lg p-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="bg-gray-300 rounded h-4 animate-pulse"></div>
+        ))}
       </div>
+      {/* Row skeletons */}
       {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="bg-gray-200 rounded h-14 animate-pulse"></div>
+        <div key={i} className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
+          <div className="hidden md:grid grid-cols-6 gap-4">
+            <div className="bg-gray-200 rounded h-5"></div>
+            <div className="bg-gray-200 rounded h-5"></div>
+            <div className="bg-gray-200 rounded h-5"></div>
+            <div className="bg-gray-200 rounded h-5"></div>
+            <div className="bg-gray-200 rounded h-5 w-20"></div>
+            <div className="flex gap-2">
+              <div className="bg-gray-200 rounded h-8 w-8"></div>
+              <div className="bg-gray-200 rounded h-8 w-8"></div>
+            </div>
+          </div>
+          {/* Mobile skeleton */}
+          <div className="md:hidden space-y-2">
+            <div className="flex justify-between">
+              <div className="bg-gray-200 rounded h-6 w-24"></div>
+              <div className="bg-gray-200 rounded h-5 w-16"></div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-gray-200 rounded h-4"></div>
+              <div className="bg-gray-200 rounded h-4"></div>
+            </div>
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -414,7 +440,24 @@ const Dashboard: React.FC = () => {
               <table className="w-full table-auto">
                 <TableHeader />
                 <tbody className="divide-y divide-gray-200">
-                  {loading ? null : paginatedItems.length ? (
+                  {loading ? (
+                    // Desktop skeleton rows
+                    [...Array(5)].map((_, i) => (
+                      <tr key={i} className="animate-pulse">
+                        <td className="px-6 py-4"><div className="bg-gray-200 rounded h-5 w-16"></div></td>
+                        <td className="px-6 py-4"><div className="bg-gray-200 rounded h-5 w-24"></div></td>
+                        <td className="px-6 py-4"><div className="bg-gray-200 rounded h-5 w-24"></div></td>
+                        <td className="px-6 py-4"><div className="bg-gray-200 rounded h-5 w-24"></div></td>
+                        <td className="px-6 py-4"><div className="bg-gray-200 rounded h-8 w-28"></div></td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            <div className="bg-gray-200 rounded h-8 w-8"></div>
+                            <div className="bg-gray-200 rounded h-8 w-8"></div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : paginatedItems.length ? (
                     (paginatedItems).map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
