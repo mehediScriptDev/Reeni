@@ -14,7 +14,8 @@ const Auth: React.FC = () => {
   const { signIn, signUp, signInWithGoogle, resetPassword, loading, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from || '/';
+  // Always redirect to Dashboard after login (better UX - users want to see their data)
+  const from = '/';
 
   useEffect(() => {
     if (!loading && user) {
