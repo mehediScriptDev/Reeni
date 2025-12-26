@@ -12,7 +12,7 @@
 [![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-[Live Demo](https://reeni.vercel.app) • [Backend Repo](https://github.com/mehediScriptDev/ReeniServer) • [Report Bug](https://github.com/mehediScriptDev/Reeni/issues) • [Request Feature](https://github.com/mehediScriptDev/Reeni/issues)
+[Live Link](https://reeni-reminder.vercel.app) • [Backend Repo](https://github.com/mehediScriptDev/ReeniServer) • [Report Bug](https://github.com/mehediScriptDev/Reeni/issues) • [Request Feature](https://github.com/mehediScriptDev/Reeni/issues)
 
 </div>
 
@@ -47,6 +47,8 @@
 - View and edit your profile information
 - Name, Email, Phone number management
 - Sign out functionality
+
+> Note: When a user edits and saves their profile (name or phone) the updated profile is persisted to the browser's `localStorage` under the key `reeni_user_profile`. This is a client-side cache that merges with Firebase user data on load — changes saved here are not automatically sent to the backend unless you explicitly implement server-side profile persistence.
 
 ### 🎨 UI/UX
 - **Fully responsive** design (mobile, tablet, desktop)
@@ -204,7 +206,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-**Mehedi Hasan**
+**Mehedi**
 
 - GitHub: [@mehediScriptDev](https://github.com/mehediScriptDev)
 
