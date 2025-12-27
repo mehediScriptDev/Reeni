@@ -224,8 +224,8 @@ const History: React.FC = () => {
   return (
     <>
       <div className="">
-        <div className="max-w-4xl mx-auto mt-6 lg:mt-12 border border-gray-200">
-          <div className="bg-white rounded-lg relative pt-6">
+        <div className="max-w-4xl mx-auto mt-3 sm:mt-6 lg:mt-10 sm:border sm:border-gray-200">
+          <div className="sm:bg-white rounded-lg relative pt-6">
             {/* Tabs */}
             <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
               <Tabs selectedIndex={selectedIndex} onSelect={(idx) => setSelectedIndex(idx)}>

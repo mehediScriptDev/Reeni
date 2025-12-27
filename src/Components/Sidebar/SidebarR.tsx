@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router";
 import { FaHome, FaPlusSquare, FaClock, FaUser } from 'react-icons/fa';
+import { FcMoneyTransfer } from 'react-icons/fc';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type MenuItem = {
@@ -10,10 +11,10 @@ type MenuItem = {
 };
 
 const menu: MenuItem[] = [
-  { label: "Dashboard", to: "/", icon: FaHome },
-  { label: "Add new", to: "/add-new", icon: FaPlusSquare },
-  { label: "History", to: "/history", icon: FaClock },
-  { label: "Profile", to: "/profile", icon: FaUser },
+  { label: "ড্যাশবোর্ড", to: "/", icon: FaHome },
+  { label: "নতুন লেনদেন", to: "/add-new", icon: FaPlusSquare },
+  { label: "লেনদেনের হিস্ট্রি", to: "/history", icon: FaClock },
+  { label: "প্রোফাইল", to: "/profile", icon: FaUser },
 ];
 
 type SidebarProps = {
@@ -67,7 +68,10 @@ const SidebarR: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             className="fixed right-0 top-0 h-screen w-64 z-50 bg-white text-gray-800 flex flex-col shadow-2xl border-l border-gray-100"
           >
             <div className="px-4 py-5 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-[#427baa] text-lg font-semibold">Reeni</h3>
+              <h3 className="text-[#427baa] text-lg font-semibold flex items-center gap-2">
+                <FcMoneyTransfer />
+                <span>Reeni</span>
+              </h3>
               <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
             </div>
 

@@ -87,7 +87,7 @@ const AddNew: React.FC = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto mt-8 p-6 bg-white rounded border border-gray-200 shadow">
+        <div className="max-w-4xl mx-auto mt-3 sm:mt-6 lg:mt-10 p-6 sm:bg-white rounded sm:border sm:border-gray-200 sm:shadow">
             <h2 className="text-2xl font-semibold mb-4">নতুন এন্ট্রি যোগ করুন</h2>
 
             <div className="mb-4">

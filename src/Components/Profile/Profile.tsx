@@ -90,14 +90,15 @@ const Profile: React.FC = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto mt-6 p-6 bg-white rounded-lg border border-gray-200">
+        <div className="max-w-4xl mx-auto mt-3 sm:mt-6 p-6 sm:bg-white rounded-lg sm:border sm:border-gray-200">
             <div className="flex items-start justify-between">
                 <div>
                     <h2 className="text-lg font-semibold">প্রোফাইল</h2>
                     <p className="text-sm text-gray-500">আপনার যোগাযোগের তথ্য</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Desktop actions: show on md+ */}
+                <div className="hidden md:flex items-center gap-2">
                     {!editing ? (
                         <button
                             onClick={() => setEditing(true)}
@@ -184,6 +185,35 @@ const Profile: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile actions: show below content on small screens */}
+            <div className="mt-4 md:hidden flex flex-col gap-3">
+                {!editing ? (
+                    <button
+                        onClick={() => setEditing(true)}
+                        className="w-full px-3 py-2 bg-[#427baa] text-white rounded text-sm"
+                    >
+                        এডিট
+                    </button>
+                ) : (
+                    <div className="flex gap-3">
+                        <button onClick={handleSave} className="flex-1 px-3 py-2 bg-[#1f7fb3] text-white rounded text-sm">
+                            সংরক্ষণ
+                        </button>
+                        <button onClick={handleCancel} className="flex-1 px-3 py-2 border rounded text-sm">
+                            বাতিল
+                        </button>
+                    </div>
+                )}
+                {!loading && user ? (
+                    <button
+                        onClick={handleSignOut}
+                        className="w-full px-3 py-2 border border-red-200 text-red-600 rounded text-sm hover:bg-red-50"
+                    >
+                        Sign out
+                    </button>
+                ) : null}
             </div>
         </div>
     );
