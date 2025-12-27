@@ -450,13 +450,13 @@ const Dashboard: React.FC = () => {
                     <div className="flex gap-2 mt-4">
                       <button 
                         onClick={() => startEdit(item)} 
-                        className="flex-1 bg-[#427baa] text-xs sm:text-base text-white px-3 py-2 rounded hover:bg-[#356a91] transition-colors"
+                        className="flex-1 bg-[#427baa] text-xs sm:text-sm text-white px-3 py-2 rounded hover:bg-[#356a91] transition-colors"
                       >
                         এডিট
                       </button>
                       <button 
                         onClick={() => deleteTransaction(item.id)} 
-                        className="flex-1 bg-red-400 text-xs sm:text-base text-white px-3 py-2 rounded hover:bg-red-500 transition-colors"
+                        className="flex-1 bg-red-400 text-xs sm:text-sm text-white px-3 py-2 rounded hover:bg-red-500 transition-colors"
                       >
                         ডিলিট
                       </button>
