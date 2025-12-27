@@ -1,8 +1,10 @@
 @import "tailwindcss";
-/* @import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Lobster&display=swap');
 
-
+@theme{
+  --font-navTitle: "Lobster", sans-serif;
+}
 .active{
-    color: #427baa;
-    font-weight: 800;
+  color: #427baa;
+  font-weight: 600;
 }

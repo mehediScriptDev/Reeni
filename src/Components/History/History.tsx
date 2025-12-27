@@ -253,7 +253,7 @@ const History: React.FC = () => {
                   {error && <div className="text-sm text-red-600">ত্রুটি: {error}</div>}
                 </div>
                 <button
-                  onClick={fetchHistory}
+                  onClick={() => fetchHistory()}
                   className="px-4 py-2 bg-[#427baa] text-white text-sm rounded hover:bg-[#356a91] transition-colors"
                 >
                   রিফ্রেশ

@@ -12,6 +12,7 @@ import Dashboard from './Components/Dashboard/Dashboard';
 const AddNew = lazy(() => import('./Components/Add-new/AddNew.tsx'));
 const History = lazy(() => import('./Components/History/History.tsx'));
 const Profile = lazy(() => import('./Components/Profile/Profile.tsx'));
+const Guide = lazy(() => import('./Components/Guide/Guide.js'));
 const Auth = lazy(() => import('./Components/Auth/Auth.tsx'));
 import ProtectedApp from './ProtectedApp';
 import DashboardSkeleton from './Components/Common/DashboardSkeleton';
@@ -60,6 +61,15 @@ const router = createBrowserRouter([
         element: (
           <Suspense fallback={null}>
             <Profile />
+          </Suspense>
+        ),
+      }
+      ,
+      {
+        path: "guide",
+        element: (
+          <Suspense fallback={null}>
+            <Guide />
           </Suspense>
         ),
       }

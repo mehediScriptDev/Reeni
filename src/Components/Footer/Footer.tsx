@@ -1,5 +1,6 @@
 import React from 'react'
 import { FcMoneyTransfer } from 'react-icons/fc'
+import { Link } from 'react-router'
 
 const Footer: React.FC = () => {
   return (
@@ -17,7 +18,7 @@ const Footer: React.FC = () => {
 
           {/* Right: single quick link */}
           <div className="mt-2 md:mt-0">
-            <a href="/guide" className="text-white/60 underline text-sm lg:text-base hover:text-white transition-colors">ব্যবহার নির্দেশিকা</a>
+            <Link to="/guide" aria-label="ব্যবহার নির্দেশিকা" className="text-white/60 underline text-sm lg:text-base hover:text-white transition-colors">ব্যবহার নির্দেশিকা</Link>
           </div>
         </div>
       </div>
