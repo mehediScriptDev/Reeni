@@ -3,7 +3,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router'
 import { FiHome, FiPlusCircle, FiClock } from 'react-icons/fi'
-import { FaUser } from 'react-icons/fa'
+import { FaRegUserCircle } from 'react-icons/fa'
 
 const BottomNav: React.FC = () => {
     const loc = useLocation()
@@ -32,7 +32,9 @@ const BottomNav: React.FC = () => {
                 </Link>
 
                 <Link to="/profile" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/profile') ? 'text-[#427baa] border-t-2' : 'text-gray-600'}`} aria-label="প্রোফাইল">
-                    <FaUser className="w-5 h-5" />
+                    
+                    
+                    <FaRegUserCircle className="w-6 h-6" />
                     <span className="mt-1">প্রোফাইল</span>
                 </Link>
             </div>

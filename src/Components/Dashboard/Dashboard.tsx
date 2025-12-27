@@ -377,7 +377,7 @@ const Dashboard: React.FC = () => {
         <div className="max-w-4xl mx-auto mt-3 sm:mt-6 lg:mt-10 sm:border sm:border-gray-200">
           <div className="sm:bg-white rounded-lg relative pt-6">
           {/* Tabs positioned above card with diamond pointer */}
-          <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
+          <div className="sticky sm:static bg-gray-200 py-3 top-14 shadow-md md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
             <Tabs selectedIndex={selectedIndex} onSelect={(idx) => { setSelectedIndex(idx); setPage(1); }}>
               <TabList className="flex items-center gap-2 md:gap-3 justify-center overflow-x-auto px-4 md:px-0 w-full md:w-auto">
                 <Tab
