@@ -2,6 +2,7 @@ import { Outlet } from 'react-router'
 import './App.css'
 import Header from './Components/Header/Header'
 import Footer from './Components/Footer/Footer'
+import BottomNav from './Components/BottomNav/BottomNav'
 
 function App() {
 
@@ -11,7 +12,7 @@ function App() {
         <Header />
       </div>
 
-      <main className='flex-1 w-full'>
+      <main className='flex-1 w-full pb-16 sm:pb-0'>
         <div className='max-w-7xl mx-auto sm:w-11/12 sm:p-4'>
           <Outlet />
         </div>
@@ -20,6 +21,9 @@ function App() {
       <div className='w-full'>
         <Footer />
       </div>
+
+      {/* Mobile bottom navigation (shows only on small screens) */}
+      <BottomNav />
     </div>
   )
 }
