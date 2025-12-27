@@ -14,24 +14,24 @@ const BottomNav: React.FC = () => {
     }
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-gray-200 border-t border-[#427baa]/20 sm:hidden z-40">
+        <nav className="fixed bottom-0 left-0 right-0 bg-gray-200 border-t border-[#427baa]/10 sm:hidden z-40">
             <div className="max-w-4xl mx-auto flex items-center justify-between px-2">
-                <Link to="/" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/') ? 'text-[#427baa]' : 'text-gray-600'}`} aria-label="ড্যাশবোর্ড">
+                <Link to="/" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/') ? 'text-[#427baa] border-t-2' : 'text-gray-600'}`} aria-label="ড্যাশবোর্ড">
                     <FiHome className="w-6 h-6" />
                     <span className="mt-1">ড্যাশবোর্ড</span>
                 </Link>
 
-                <Link to="/add-new" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/add-new') ? 'text-[#427baa]' : 'text-gray-600'}`} aria-label="নতুন লেনদেন">
+                <Link to="/add-new" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/add-new') ? 'text-[#427baa] border-t-2' : 'text-gray-600'}`} aria-label="নতুন লেনদেন">
                     <FiPlusCircle className="w-6 h-6" />
                     <span className="mt-1">নতুন লেনদেন</span>
                 </Link>
 
-                <Link to="/history" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/history') ? 'text-[#427baa]' : 'text-gray-600'}`} aria-label="লেনদেনের হিস্ট্রি">
+                <Link to="/history" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/history') ? 'text-[#427baa] border-t-2' : 'text-gray-600'}`} aria-label="লেনদেনের হিস্ট্রি">
                     <FiClock className="w-6 h-6" />
                     <span className="mt-1">হিস্ট্রি</span>
                 </Link>
 
-                <Link to="/profile" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/profile') ? 'text-[#427baa]' : 'text-gray-600'}`} aria-label="প্রোফাইল">
+                <Link to="/profile" className={`flex-1 py-3 px-1 flex flex-col items-center text-[11px] ${isActive('/profile') ? 'text-[#427baa] border-t-2' : 'text-gray-600'}`} aria-label="প্রোফাইল">
                     <FaUser className="w-5 h-5" />
                     <span className="mt-1">প্রোফাইল</span>
                 </Link>

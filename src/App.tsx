@@ -8,7 +8,7 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className='max-w-7xl mx-auto w-full'>
+      <div className='max-w-7xl mx-auto w-full top-0 sticky sm:relative z-50'>
         <Header />
       </div>
 

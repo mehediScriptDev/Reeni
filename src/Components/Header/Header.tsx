@@ -19,22 +19,24 @@ const Header: React.FC = () => {
     ];
     return (
         <>
-        <div className='p-4 w-11/12 mx-auto'>
+        <div className='bg-gray-200 sm:bg-[#f9fafb] border-b border-[#427baa]/5 mb-1.5'>
+            <div className='p-4 w-11/12 mx-auto '>
             <div className='flex justify-between items-center '>
                 <a href='/' className='sm:text-3xl text-2xl font-bold text-[#427baa] flex items-center gap-1.5 nav-title'><FcMoneyTransfer /> Reeni</a>
 
                 {/* desktop navlinks */}
-                <div className='hidden md:flex justify-center items-center gap-5 text-gray-700'>
+                <div className='hidden sm:flex justify-center items-center gap-5 text-gray-700'>
                     {navlinks.map((navlink)=>(
                         <NavLink key={navlink.link} className='flex flex-col items-center' to={navlink.link}>{navlink.icon} <span className='text-sm'>{navlink.name}</span></NavLink>
                     ))}
                 </div>
 
                 {/* mobile menu button */}
-                <button onClick={() => setShowSidebar(true)} className='md:hidden text-gray-700'>
+                <button onClick={() => setShowSidebar(true)} className='sm:hidden text-gray-700'>
                     <FaBars className='w-4 h-4' />
                 </button>
             </div>
+        </div>
         </div>
 
         <SidebarR isOpen={showSidebar} onClose={() => setShowSidebar(false)} />
