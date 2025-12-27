@@ -101,12 +101,9 @@ const Auth: React.FC = () => {
     }
   };
 
+  // Remove the text-only loading screen; let the initial splash or skeletons handle loading
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-700 text-sm">লোড হচ্ছে…</div>
-      </div>
-    );
+    return null;
   }
 
   return (

@@ -7,31 +7,34 @@ import {
 } from 'react-router';
 import { AuthProvider } from './context/AuthContext';
 
-// Lazy-load route components and Auth for code-splitting
-const Dashboard = lazy(() => import('./Components/Dashboard/Dashboard.tsx'));
+// Import Dashboard eagerly so the app shell + dashboard skeleton render immediately
+import Dashboard from './Components/Dashboard/Dashboard';
 const AddNew = lazy(() => import('./Components/Add-new/AddNew.tsx'));
 const History = lazy(() => import('./Components/History/History.tsx'));
 const Profile = lazy(() => import('./Components/Profile/Profile.tsx'));
 const Auth = lazy(() => import('./Components/Auth/Auth.tsx'));
-const ProtectedApp = lazy(() => import('./ProtectedApp.tsx'));
+import ProtectedApp from './ProtectedApp';
+import DashboardSkeleton from './Components/Common/DashboardSkeleton';
 
-const LoadingFallback = () => (
-  <div className="p-6 text-center text-gray-600">লোড হচ্ছে…</div>
-);
+
+// App-level skeleton fallback shown while lazy routes load.
+// This avoids a white flash between the initial HTML splash and the app render,
+// and provides an immediate skeleton similar to the dashboard.
+// No global fallback here — render the app shell immediately and let
+// route components show their own skeletons while data loads.
+const AppFallback = () => null;
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: (
-      <Suspense fallback={<LoadingFallback />}>
-        <ProtectedApp />
-      </Suspense>
+      <ProtectedApp />
     ),
     children: [
       {
         path: "/",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<DashboardSkeleton />}>
             <Dashboard />
           </Suspense>
         ),
@@ -39,7 +42,7 @@ const router = createBrowserRouter([
       {
         path: "add-new",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={null}>
             <AddNew />
           </Suspense>
         ),
@@ -47,7 +50,7 @@ const router = createBrowserRouter([
       {
         path: "history",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={null}>
             <History />
           </Suspense>
         ),
@@ -55,7 +58,7 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: (
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={null}>
             <Profile />
           </Suspense>
         ),
@@ -67,7 +70,7 @@ const router = createBrowserRouter([
   {
     path:'login',
     element: (
-      <Suspense fallback={<LoadingFallback />}>
+      <Suspense fallback={<AppFallback />}>
         <Auth />
       </Suspense>
     )

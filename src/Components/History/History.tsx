@@ -22,7 +22,7 @@ const History: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0 = borrow, 1 = lent
   const activeTab = selectedIndex === 0 ? 'borrow' : 'lent';
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const normalize = (raw: any): HistoryItem => {
@@ -63,9 +63,19 @@ const History: React.FC = () => {
     return normalized;
   };
 
-  const fetchHistory = async () => {
+  const CACHE_KEY = `reeni_history_${user?.uid || 'anon'}`;
+
+  const saveCache = (items: HistoryItem[]) => {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
+    } catch {
+      // ignore
+    }
+  };
+
+  const fetchHistory = async (showLoading = true) => {
     if (!user?.uid) return;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     setError(null);
     try {
       const res = await axios.get(`${API_BASE_URL}/history`, { 
@@ -110,6 +120,7 @@ const History: React.FC = () => {
       console.log('Normalized count:', normalized.length);
       console.log('===== END DEBUG =====');
       setHistory(normalized);
+      saveCache(normalized);
     } catch (err: any) {
       const errMsg = err?.response?.data?.error ||
         err?.response?.data?.message ||
@@ -118,14 +129,33 @@ const History: React.FC = () => {
       console.error('History fetch error:', errMsg, err);
       setError(errMsg);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user?.uid) {
-      fetchHistory();
+    if (!user?.uid) return;
+
+    // Try cache first
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.items)) {
+          setHistory(parsed.items as HistoryItem[]);
+          setLoading(false);
+          // background refresh
+          fetchHistory(false);
+        } else {
+          fetchHistory(true);
+        }
+      } else {
+        fetchHistory(true);
+      }
+    } catch (e) {
+      fetchHistory(true);
     }
+
     const handler = () => fetchHistory();
     window.addEventListener('reeni:historyUpdated', handler as EventListener);
     return () => window.removeEventListener('reeni:historyUpdated', handler as EventListener);
@@ -160,7 +190,9 @@ const History: React.FC = () => {
 
     try {
       await axios.delete(`${API_BASE_URL}/history/${id}`, { timeout: 10000 });
-      setHistory((prev) => prev.filter((h) => h.id !== id));
+      const afterDelete = history.filter((h) => h.id !== id);
+      setHistory(afterDelete);
+      saveCache(afterDelete);
       window.dispatchEvent(new Event('reeni:historyUpdated'));
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.message || 'মুছে ফেলতে ব্যর্থ');

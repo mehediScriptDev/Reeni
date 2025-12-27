@@ -22,6 +22,7 @@ interface AuthContextValue {
   resetPassword: (email: string) => Promise<void>;
   signOutUser: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
+  reloadUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -56,6 +57,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const reloadUser = async () => {
+    if (auth.currentUser) {
+      try {
+        await auth.currentUser.reload();
+        // update local user state with refreshed user
+        setUser(auth.currentUser as User);
+      } catch (err) {
+        // ignore reload errors
+      }
+    }
+  };
+
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -83,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const value = useMemo(
-    () => ({ user, loading, signUp, signIn, signInWithGoogle, resetPassword, signOutUser, sendVerificationEmail }),
+    () => ({ user, loading, signUp, signIn, signInWithGoogle, resetPassword, signOutUser, sendVerificationEmail, reloadUser }),
     [user, loading]
   );
 

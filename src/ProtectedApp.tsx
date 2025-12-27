@@ -16,6 +16,8 @@ const ProtectedApp: React.FC = () => {
     }
   }, [loading, user, navigate, location]);
 
+  const { reloadUser } = useAuth();
+
   const handleResend = async () => {
     setResending(true);
     try {
@@ -46,10 +48,10 @@ const ProtectedApp: React.FC = () => {
           </p>
           <div className="mt-6 space-y-3">
             <button
-              onClick={() => window.location.reload()}
+              onClick={async () => { await reloadUser(); }}
               className="w-full px-4 py-2 bg-[#1976D2] text-white rounded hover:bg-[#1565C0]"
             >
-              আমি ভেরিফাই করেছি - রিফ্রেশ করুন
+              আমি ভেরিফাই করেছি - চেক করুন
             </button>
             <button
               onClick={handleResend}
@@ -70,15 +72,10 @@ const ProtectedApp: React.FC = () => {
     );
   }
 
-  // Render App immediately with optional loading overlay
+  // Render App immediately. The app shell shows right away; route/data skeletons handle content loading.
   return (
     <>
       <App />
-      {loading && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg px-6 py-4 text-sm text-gray-700">লোড হচ্ছে…</div>
-        </div>
-      )}
     </>
   );
 };

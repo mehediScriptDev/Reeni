@@ -21,7 +21,7 @@ const Header: React.FC = () => {
         <>
         <div className='p-4 w-11/12 mx-auto'>
             <div className='flex justify-between items-center '>
-                <a href='/' className='text-3xl font-bold text-[#427baa] flex items-center gap-1.5 nav-title'><FcMoneyTransfer /> Reeni</a>
+                <a href='/' className='sm:text-3xl text-2xl font-bold text-[#427baa] flex items-center gap-1.5 nav-title'><FcMoneyTransfer /> Reeni</a>
 
                 {/* desktop navlinks */}
                 <div className='hidden md:flex justify-center items-center gap-5 text-gray-700'>

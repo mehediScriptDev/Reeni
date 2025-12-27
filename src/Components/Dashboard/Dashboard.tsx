@@ -61,37 +61,69 @@ const Dashboard: React.FC = () => {
       returned: Boolean(returned),
     };
   };
+  const CACHE_KEY = `reeni_transactions_${user?.uid || 'anon'}`;
 
-  const fetchTransactions = async () => {
+  const saveCache = (items: Transaction[]) => {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const fetchTransactions = async (showLoading = true) => {
     if (!user?.uid) return; // Don't fetch if no user
-    setLoading(true);
+    if (showLoading) setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${API_BASE_URL}/new-list`, { 
+      const res = await axios.get(`${API_BASE_URL}/new-list`, {
         timeout: 10000,
-        params: { userId: user.uid } // Filter by user
+        params: { userId: user.uid }, // Filter by user
       });
 
       const data = res.data;
       const arr = Array.isArray(data) ? data : [data];
       const normalized = arr.map(normalize);
       setTransactions(normalized);
+      saveCache(normalized);
     } catch (err: any) {
       setError(
         err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        err?.message ||
-        'Failed to load transactions'
+          err?.response?.data?.message ||
+          err?.message ||
+          'Failed to load transactions'
       );
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user?.uid) {
-      fetchTransactions();
+    if (!user?.uid) return;
+
+    // Try to load from session cache first so skeleton doesn't show again during this session
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.items)) {
+          setTransactions(parsed.items as Transaction[]);
+          setLoading(false);
+          // Fetch in background to refresh cache without showing skeleton
+          fetchTransactions(false);
+        } else {
+          // No valid cache — show skeleton and fetch
+          fetchTransactions(true);
+        }
+      } else {
+        // No cache — show skeleton and fetch
+        fetchTransactions(true);
+      }
+    } catch (e) {
+      // If anything fails, fall back to normal fetch
+      fetchTransactions(true);
     }
+
     const handler = () => fetchTransactions();
     window.addEventListener('reeni:transactionsUpdated', handler as EventListener);
     return () => window.removeEventListener('reeni:transactionsUpdated', handler as EventListener);
@@ -144,7 +176,9 @@ const Dashboard: React.FC = () => {
         await axios.delete(`${API_BASE_URL}/new-list/${id}`, { timeout: 10000 });
 
         // Update UI
-        setTransactions((prev) => prev.filter((t) => t.id !== id));
+        const updatedAfterMove = transactions.filter((t) => t.id !== id);
+        setTransactions(updatedAfterMove);
+        saveCache(updatedAfterMove);
         window.dispatchEvent(new Event('reeni:transactionsUpdated'));
         window.dispatchEvent(new Event('reeni:historyUpdated'));
 
@@ -168,12 +202,9 @@ const Dashboard: React.FC = () => {
       }
     } else {
       // If unmarking as returned, just update local state
-      setTransactions((prev) =>
-        prev.map((t) => {
-          if (t.id !== id) return t;
-          return { ...t, returned: false };
-        })
-      );
+      const updatedUnmark = transactions.map((t) => (t.id !== id ? t : { ...t, returned: false }));
+      setTransactions(updatedUnmark);
+      saveCache(updatedUnmark);
     }
   };
 
@@ -215,7 +246,9 @@ const Dashboard: React.FC = () => {
 
     try {
       await axios.delete(`${API_BASE_URL}/new-list/${id}`, { timeout: 10000 });
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
+      const afterDelete = transactions.filter((t) => t.id !== id);
+      setTransactions(afterDelete);
+      saveCache(afterDelete);
       window.dispatchEvent(new Event('reeni:transactionsUpdated'));
     } catch (err: any) {
       setError(err?.response?.data?.error || err?.message || 'মুছে ফেলতে ব্যর্থ');
@@ -254,9 +287,9 @@ const Dashboard: React.FC = () => {
       await axios.put(`${API_BASE_URL}/new-list/${editing.id}`, payload, { timeout: 10000 });
 
       // Update UI state
-      setTransactions((prev) =>
-        prev.map((t) => (t.id === editing.id ? { ...t, ...payload } : t))
-      );
+      const updatedAfterEdit = transactions.map((t) => (t.id === editing.id ? { ...t, ...payload } : t));
+      setTransactions(updatedAfterEdit);
+      saveCache(updatedAfterEdit);
 
       setEditing(null);
       setEditForm(null);
@@ -341,8 +374,8 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <div className=" ">
-        <div className="max-w-4xl mx-auto mt-6 lg:mt-12 border border-gray-200">
-          <div className="bg-white rounded-lg relative pt-6">
+        <div className="max-w-4xl mx-auto mt-3 sm:mt-6 lg:mt-10 sm:border sm:border-gray-200">
+          <div className="sm:bg-white rounded-lg relative pt-6">
           {/* Tabs positioned above card with diamond pointer */}
           <div className="relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
             <Tabs selectedIndex={selectedIndex} onSelect={(idx) => { setSelectedIndex(idx); setPage(1); }}>
@@ -398,7 +431,7 @@ const Dashboard: React.FC = () => {
                         <select
                           value={item.returned ? 'returned' : 'not_returned'}
                           onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
-                          className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-sm rounded"
+                          className="mt-1 bg-gray-200 border border-gray-300 w-full px-3 py-1 text-xs sm:text-sm rounded"
                         >
                           {activeTab === 'lent' ? (
                             <>
@@ -417,13 +450,13 @@ const Dashboard: React.FC = () => {
                     <div className="flex gap-2 mt-4">
                       <button 
                         onClick={() => startEdit(item)} 
-                        className="flex-1 bg-[#427baa] text-white px-3 py-2 rounded hover:bg-[#356a91] transition-colors"
+                        className="flex-1 bg-[#427baa] text-xs sm:text-base text-white px-3 py-2 rounded hover:bg-[#356a91] transition-colors"
                       >
                         এডিট
                       </button>
                       <button 
                         onClick={() => deleteTransaction(item.id)} 
-                        className="flex-1 bg-red-400 text-white px-3 py-2 rounded hover:bg-red-500 transition-colors"
+                        className="flex-1 bg-red-400 text-xs sm:text-base text-white px-3 py-2 rounded hover:bg-red-500 transition-colors"
                       >
                         ডিলিট
                       </button>
@@ -431,7 +464,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 ))
               ) : (
-                <div className="p-6 bg-white border border-gray-200 rounded text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</div>
+                <div className="p-6 text-sm sm:text-base bg-white border border-gray-200 rounded text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</div>
               )}
             </div>
 
