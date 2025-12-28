@@ -556,7 +556,7 @@ const Dashboard: React.FC = () => {
                   <div className="grid grid-cols-4 gap-2 mb-3 text-xs text-gray-500 px-2">
                     <div className="font-medium">টাকা</div>
                     <div className="text-center">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</div>
-                    <div className="text-center">নেওয়ার তারিখ</div>
+                    <div className="text-center">তারিখ</div>
                     <div className="text-right">{activeTab === 'lent' ? 'ফেরত দিবে' : 'ফেরত দিবো'}</div>
                   </div>
 
