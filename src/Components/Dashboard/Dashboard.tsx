@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Tabs, TabList, Tab } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
+import { useNavigate } from 'react-router';
+import EmptyState from '../Common/EmptyState';
 
 interface Transaction {
   id: string;
@@ -62,6 +64,16 @@ const Dashboard: React.FC = () => {
     };
   };
   const CACHE_KEY = `reeni_transactions_${user?.uid || 'anon'}`;
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const tabsRef = useRef<HTMLDivElement | null>(null);
+  const [isTabsStuck, setIsTabsStuck] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia('(max-width: 767px)').matches;
+  });
+
+  const navigate = useNavigate();
 
   const saveCache = (items: Transaction[]) => {
     try {
@@ -128,6 +140,50 @@ const Dashboard: React.FC = () => {
     window.addEventListener('reeni:transactionsUpdated', handler as EventListener);
     return () => window.removeEventListener('reeni:transactionsUpdated', handler as EventListener);
   }, [user?.uid]); // Re-fetch when user changes
+
+
+  // IntersectionObserver to detect when tabs stick to `top-14` on mobile.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let observer: IntersectionObserver | null = null;
+
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handleMq = () => setIsMobile(mq.matches);
+    // initialize
+    handleMq();
+    if (mq.addEventListener) mq.addEventListener('change', handleMq);
+    else mq.addListener(handleMq as any);
+
+    // Only observe on mobile widths
+    if (!mq.matches) {
+      setIsTabsStuck(false);
+      return () => {
+        if (mq.removeEventListener) mq.removeEventListener('change', handleMq);
+        else mq.removeListener(handleMq as any);
+      };
+    }
+
+    const el = sentinelRef.current;
+    if (!el) return () => {};
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0];
+        // When sentinel is NOT intersecting at the root margin, the tabs are stuck.
+        setIsTabsStuck(!e.isIntersecting);
+      },
+      { root: null, rootMargin: '-56px 0px 0px 0px', threshold: 0 }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      if (observer) observer.disconnect();
+      if (mq.removeEventListener) mq.removeEventListener('change', handleMq);
+      else mq.removeListener(handleMq as any);
+    };
+  }, []);
 
 
 
@@ -220,6 +276,29 @@ const Dashboard: React.FC = () => {
     if (activeTab === 'lent') return returned ? 'ফেরত দিয়েছে' : 'ফেরত দেয়নি';
     // If I borrowed (আমি ধার নিয়েছি) show first-person labels about myself
     return returned ? 'ফেরত দিয়েছি' : 'ফেরত দেইনি';
+  };
+
+  // Return true when `dateStr` represents a calendar date before today.
+  const isPastDate = (dateStr?: string) => {
+    if (!dateStr) return false;
+    let d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+      // Try YYYY-MM-DD fallback parsing
+      const parts = String(dateStr).split('-');
+      if (parts.length === 3) {
+        const y = Number(parts[0]);
+        const m = Number(parts[1]);
+        const day = Number(parts[2]);
+        if (!Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(day)) {
+          d = new Date(y, m - 1, day);
+        }
+      }
+    }
+    if (isNaN(d.getTime())) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
+    return d < today;
   };
 
   useEffect(() => {
@@ -377,7 +456,15 @@ const Dashboard: React.FC = () => {
         <div className="max-w-4xl mx-auto mt-3 sm:mt-6 lg:mt-10 sm:border sm:border-gray-200">
           <div className="sm:bg-white rounded-lg relative pt-6">
           {/* Tabs positioned above card with diamond pointer */}
-          <div className="sticky sm:static bg-gray-200 py-3 top-14 shadow-md md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10">
+          {/* sentinel used by IntersectionObserver to detect when tabs hit `top-14` */}
+          <div ref={sentinelRef} className="h-0" />
+
+          <div
+            ref={tabsRef}
+            className={`sticky sm:static top-14 md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10 transition-colors duration-150 ${
+              isTabsStuck && isMobile ? 'bg-gray-200 py-3 shadow-md' : ''
+            }`}
+          >
             <Tabs selectedIndex={selectedIndex} onSelect={(idx) => { setSelectedIndex(idx); setPage(1); }}>
               <TabList className="flex items-center gap-2 md:gap-3 justify-center overflow-x-auto px-4 md:px-0 w-full md:w-auto">
                 <Tab
@@ -424,7 +511,7 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div>
                         <div className="text-xs text-gray-500">ফেরত</div>
-                        <div>{item.returnDate || '-'}</div>
+                        <div className={isPastDate(item.returnDate) ? 'text-red-300 font-semibold' : ''}>{item.returnDate || '-'}</div>
                       </div>
                       <div>
                         <div className="text-xs text-gray-500">অবস্থা</div>
@@ -464,7 +551,26 @@ const Dashboard: React.FC = () => {
                   </div>
                 ))
               ) : (
-                <div className="p-6 text-sm sm:text-base bg-white border border-gray-200 rounded text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</div>
+                <>
+                  {/* Compact header to match desktop context on mobile */}
+                  <div className="grid grid-cols-4 gap-2 mb-3 text-xs text-gray-500 px-2">
+                    <div className="font-medium">টাকা</div>
+                    <div className="text-center">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</div>
+                    <div className="text-center">নেওয়ার তারিখ</div>
+                    <div className="text-right">{activeTab === 'lent' ? 'ফেরত দিবে' : 'ফেরত দিবো'}</div>
+                  </div>
+
+                  <div className="p-4">
+                    <EmptyState
+                      title="কোনো এন্ট্রি নেই"
+                      subtitle="আপনি এখনো কোনো লেনদেন করেননি — নতুন এন্ট্রি যোগ করুন বা নির্দেশিকা দেখুন।"
+                      primaryLabel="নতুন যোগ করুন"
+                      onPrimary={() => navigate('/add-new')}
+                      secondaryLabel="কীভাবে ব্যবহার করবেন"
+                      onSecondary={() => navigate('/guide')}
+                    />
+                  </div>
+                </>
               )}
             </div>
 
@@ -496,7 +602,11 @@ const Dashboard: React.FC = () => {
                         <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.person}</td>
                         <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.returnDate || '-'}</td>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap">
+                          <span className={isPastDate(item.returnDate) ? 'text-red-400 font-semibold' : 'text-gray-900'}>
+                            {item.returnDate || '-'}
+                          </span>
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <select
