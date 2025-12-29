@@ -30,6 +30,7 @@ const AddNew: React.FC = () => {
 
         const payload = {
             userId: user?.uid, // Associate with current user
+            email: user?.email, // include authenticated user's email for reminders
             amount: amountValue,
             person: (mode === 'lent' ? recipientName : fromName).trim(),
             dueDate: givenDate,
@@ -40,8 +41,24 @@ const AddNew: React.FC = () => {
 
         try {
             setSubmitting(true);
+            // Try to get an ID token to send in Authorization header (recommended)
+            let idToken: string | undefined;
+            try {
+                if (user && typeof (user as any).getIdToken === 'function') {
+                    // @ts-ignore - firebase User type
+                    idToken = await (user as any).getIdToken();
+                }
+            } catch (tokenErr) {
+                // ignore token errors - request can still proceed without token
+                // eslint-disable-next-line no-console
+                console.warn('Failed to get ID token', tokenErr);
+            }
+
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (idToken) headers['Authorization'] = `Bearer ${idToken}`;
+
             await axios.post(`${API_BASE_URL}/new-list`, payload, {
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 timeout: 10000,
             });
             setMessage('সফলভাবে সংরক্ষণ হয়েছে');
