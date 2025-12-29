@@ -28,6 +28,33 @@ const AddNew: React.FC = () => {
             return;
         }
 
+        // Require a return date — prevents creating items without returnDate
+        if (!returnDate) {
+            setMessage('ফেরত দেওয়ার তারিখ দিন');
+            return;
+        }
+
+        // Validate dates: returnDate must be strictly after givenDate and must be in the future
+        const toDateOnly = (s: string) => {
+            const d = new Date(s);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        };
+
+        const given = toDateOnly(givenDate);
+        const ret = toDateOnly(returnDate);
+        const today = toDateOnly(new Date().toISOString().slice(0, 10));
+
+        if (!(ret > given)) {
+            setMessage('ফেরত দেওয়ার তারিখ অবশ্যই নেওয়ার তারিখের পরে হতে হবে');
+            return;
+        }
+
+        if (!(ret > today)) {
+            setMessage('ফেরত তারিখ অবশ্যই ভবিষ্যতের একটি তারিখ হতে হবে; যদি ইতিমধ্যেই টাকা ফেরত পেয়ে থাকেন/দিয়ে থাকেন, নতুন এন্ট্রি যোগ করার দরকার নেই।');
+            return;
+        }
+
         const payload = {
             userId: user?.uid, // Associate with current user
             email: user?.email, // include authenticated user's email for reminders
@@ -152,7 +179,7 @@ const AddNew: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">ফেরত দেওয়ার তারিখ</label>
-                            <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
+                            <input type="date" required value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
                         </div>
                     </>
                 ) : (
@@ -174,7 +201,7 @@ const AddNew: React.FC = () => {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">ফেরত দেওয়ার তারিখ</label>
-                            <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
+                            <input type="date" required value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
                         </div>
                     </>
                 )}
