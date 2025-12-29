@@ -63,7 +63,7 @@ const Guide = () => {
                 <section id="add" className="guide-section">
                     <h2 className="text-lg font-semibold text-gray-800 mb-2">নতুন লেনদেন কীভাবে যোগ করবেন</h2>
                     <ol className="space-y-2 text-sm sm:text-base list-decimal list-inside text-gray-700 pl-4">
-                        <li>হেডার বা নেভিগেশন থেকে <span className="font-semibold">নতুন লেনদেন</span> খুলুন (মোবাইলে বড় বোতাম সুবিধা আছে)</li>
+                        <li>হেডার বা নেভিগেশন থেকে <span className="font-semibold">নতুন লেনদেন</span> খুলুন</li>
                         <li>ফর্মে নিম্নলিখিত তথ্য দিন:
                             <ul className="list-disc list-inside mt-1 pl-4">
                                 <li><span className="font-semibold">পরিমাণ</span> — টাকার পরিমাণ</li>

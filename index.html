@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/fav.png" />
+    <link rel="preload" href="/fav.png" as="image">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- DNS prefetch for faster Firebase connections -->
     <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
@@ -28,13 +29,11 @@
       .loading-logo {
         width: 80px;
         height: 80px;
-        background: linear-gradient(135deg, #427baa 0%, #1f7fb3 100%);
         border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        color: white;
+        display: block;
+        object-fit: cover;
+        background:  #e5e8eb;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
         animation: pulse 1.5s ease-in-out infinite;
       }
       @keyframes pulse {
@@ -47,9 +46,9 @@
   <body>
     <div id="root">
       <div class="loading-screen">
-        <div class="loading-logo">💰</div>
+        <img class="loading-logo" src="/fav.png" alt="Reeni logo" />
         <div class="loading-text">Reeni - Reminder</div>
-        <div style="color: #999; font-size: 0.875rem;">লোড হচ্ছে…</div>
+        <div style="color: #999; font-size: 0.875rem;">টাকা ধার-দেনা মনে রাখার সহজ উপায়</div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
