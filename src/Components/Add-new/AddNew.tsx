@@ -88,7 +88,6 @@ const AddNew: React.FC = () => {
                 headers,
                 timeout: 10000,
             });
-            setMessage('সফলভাবে সংরক্ষণ হয়েছে');
             const { default: Swal } = await import('sweetalert2');
             await Swal.fire({
                 title: 'সফলভাবে সংরক্ষণ হয়েছে',
@@ -220,7 +219,7 @@ const AddNew: React.FC = () => {
                             }} className="px-4 py-2 border rounded">রিসেট</button>
                         </div>
 
-                {message && <div className="mt-2 text-sm text-gray-700">{message}</div>}
+                {message && <div className="mt-2 text-sm text-red-600">{message}</div>}
                 </form>
             ) : (
                 <div className="text-sm text-gray-600">উপরের তালিকা থেকে ধরন নির্বাচন করুন যাতে ফর্ম প্রদর্শিত হয়।</div>
