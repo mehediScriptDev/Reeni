@@ -26,7 +26,7 @@ const EmptyState: React.FC<Props> = ({
           <path d="M8 16h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
 
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-lg font-semibold text-center text-gray-900">{title}</h3>
         <p className="text-sm text-gray-600 text-center max-w-xs">{subtitle}</p>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 mt-2">

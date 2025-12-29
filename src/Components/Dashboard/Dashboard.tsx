@@ -198,12 +198,12 @@ const Dashboard: React.FC = () => {
       if (!item) return;
 
       const result = await Swal.fire({
-        title: 'ফেরত নিশ্চিত করুন',
-        text: 'এই এন্ট্রি হিস্ট্রিতে সরানো হবে। নিশ্চিত করুন?',
+        title: 'আপনি কি নিশ্চিত?',
+        text: 'এই লেনদেনটি ফেরত পাওয়া / দেওয়া হিসেবে চিহ্নিত হলে রিমাইন্ডার বন্ধ হয়ে যাবে।',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'হ্যাঁ, হিস্ট্রিতে সরান',
-        cancelButtonText: 'বাতিল',
+        confirmButtonText: 'হ্যাঁ, নিশ্চিত',
+        cancelButtonText: 'না',
         confirmButtonColor: '#427baa',
       });
 
@@ -563,13 +563,13 @@ const Dashboard: React.FC = () => {
                   <div className="p-4">
                     <EmptyState
                       title="কোনো এন্ট্রি নেই"
-                      subtitle="আপনি এখনো কোনো লেনদেন করেননি — নতুন এন্ট্রি যোগ করুন বা নির্দেশিকা দেখুন।"
-                      primaryLabel="নতুন যোগ করুন"
-                      onPrimary={() => navigate('/add-new')}
-                      secondaryLabel="কীভাবে ব্যবহার করবেন"
-                      onSecondary={() => navigate('/guide')}
-                    />
-                  </div>
+                      subtitle="নতুন লেনদেন যোগ করুন, Reeni বাকিটা মনে রাখবে 😊"
+                       primaryLabel="নতুন যোগ করুন"
+                       onPrimary={() => navigate('/add-new')}
+                       secondaryLabel="কীভাবে ব্যবহার করবেন"
+                       onSecondary={() => navigate('/guide')}
+                     />
+                   </div>
                 </>
               )}
             </div>
@@ -650,8 +650,34 @@ const Dashboard: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-600">কোনো এন্ট্রি পাওয়া যায়নি</td>
-                    </tr>
+                    <td colSpan={6} className="px-6 py-8">
+                      <div role="status" aria-live="polite" className="flex flex-col items-center">
+                        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" className="text-gray-200">
+                          <rect x="2" y="4" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                          <path d="M7 12h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                          <path d="M7 15h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+
+                        <h3 className="text-lg font-semibold text-gray-900 mt-4">আপনি এখনো কোনো লেনদেন যোগ করেননি।</h3>
+                        <p className="text-sm text-gray-600 mt-2">নতুন লেনদেন যোগ করুন, Reeni বাকিটা মনে রাখবে 😊</p>
+
+                        <div className="flex gap-3 mt-4">
+                          <button
+                            onClick={() => navigate('/add-new')}
+                            className="px-4 py-2 bg-[#427baa] text-white rounded-md text-sm hover:bg-[#356a91] transition-colors cursor-pointer"
+                          >
+                            নতুন যোগ করুন
+                          </button>
+                          <button
+                            onClick={() => navigate('/guide')}
+                            className="px-3 py-2 text-sm cursor-pointer text-gray-700 rounded-md underline"
+                          >
+                            কীভাবে ব্যবহার করবেন
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
                   )}
                 </tbody>
               </table>

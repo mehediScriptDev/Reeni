@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { CgProfile } from 'react-icons/cg';
-import { FcMoneyTransfer } from 'react-icons/fc';
+// use the fav image for branding in header
 import { LuLayoutDashboard, LuPlus } from 'react-icons/lu';
 import { RiHistoryFill } from 'react-icons/ri';
 import { Link, NavLink } from 'react-router';
@@ -20,7 +20,10 @@ const Header: React.FC = () => {
         <div className='bg-gray-200 sm:bg-[#f9fafb] border-b border-[#427baa]/5 mb-1.5'>
             <div className='p-3 w-11/12 mx-auto '>
             <div className='flex justify-between items-center '>
-                <Link to='/' className='sm:text-3xl text-2xl font-bold text-[#427baa] flex items-center gap-1.5 nav-title'><FcMoneyTransfer /> Reeni</Link>
+                                <Link to='/' className='sm:text-3xl text-2xl font-bold text-[#427baa] flex items-center gap-1.5 nav-title'>
+                                    <img src="/fav.png" alt="Reeni" className="w-8 h-8 sm:w-9 sm:h-9 object-contain" />
+                                    <span className="-ml-1.5">Reeni</span>
+                                </Link>
 
                 {/* desktop navlinks */}
                 <div className='hidden sm:flex justify-center items-center gap-5 text-gray-500'>

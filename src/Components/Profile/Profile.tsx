@@ -93,7 +93,7 @@ const Profile: React.FC = () => {
         <div className="max-w-4xl mx-auto mt-3 sm:mt-6 p-6 sm:bg-white rounded-lg sm:border sm:border-gray-200">
             <div className="flex items-start justify-between">
                 <div>
-                    <h2 className="text-lg font-semibold">প্রোফাইল</h2>
+                    <h2 className="text-lg text-[#427baa] font-semibold">প্রোফাইল</h2>
                     <p className="text-sm text-gray-500">আপনার যোগাযোগের তথ্য</p>
                 </div>
 

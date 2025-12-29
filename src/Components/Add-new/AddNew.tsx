@@ -131,7 +131,7 @@ const AddNew: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto mt-3 sm:mt-6 lg:mt-10 p-6 sm:bg-white rounded sm:border sm:border-gray-200 sm:shadow">
-            <h2 className="text-2xl font-semibold mb-4">নতুন এন্ট্রি যোগ করুন</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-[#427baa]">নতুন এন্ট্রি যোগ করুন</h2>
 
             <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">ধরন নির্বাচন করুন</label>
@@ -148,7 +148,7 @@ const AddNew: React.FC = () => {
 
             {mode ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <h3 className="text-lg font-medium">{mode === 'lent' ? 'আমি ধার দিয়েছি' : 'আমি ধার নিয়েছি'}</h3>
+                    <h3 className="text-lg text-gray-800 font-medium">{mode === 'lent' ? 'আমি ধার দিয়েছি' : 'আমি ধার নিয়েছি'}</h3>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">টাকার পরিমাণ</label>
                     <input

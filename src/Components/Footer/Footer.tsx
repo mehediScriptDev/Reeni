@@ -1,5 +1,4 @@
 import React from 'react'
-import { FcMoneyTransfer } from 'react-icons/fc'
 import { Link } from 'react-router'
 
 const Footer: React.FC = () => {
@@ -10,10 +9,10 @@ const Footer: React.FC = () => {
           {/* Left: logo, title and tagline */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <div className="flex items-center gap-2">
-              <FcMoneyTransfer className="w-7 h-7" />
-              <span className="sm:text-2xl text-xl font-bold">Reeni</span>
+              <img src="/fav.png" alt="Reeni" className="w-8 h-8 object-contain" />
+              <span className="sm:text-2xl text-xl -ml-1.5 font-bold">Reeni</span>
             </div>
-            <p className="text-sm text-white/60 mt-1">সময়মতো মনে করিয়ে দেয়, বিশ্বাস ধরে রাখে</p>
+            <p className="text-sm text-white/60 mt-1">আপনাকে ঠিক সময়ে মনে করিয়ে দেবে</p>
           </div>
 
           {/* Right: single quick link */}
