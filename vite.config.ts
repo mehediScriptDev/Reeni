@@ -5,7 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  base: '/',
   build: {
+    outDir: 'dist',
     // Enable code-splitting for better caching & async loading
     rollupOptions: {
       output: {
