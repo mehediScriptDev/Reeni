@@ -461,7 +461,7 @@ const Dashboard: React.FC = () => {
 
           <div
             ref={tabsRef}
-            className={`sticky sm:static top-14 md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10 transition-colors duration-150 ${
+            className={`sticky sm:static top-14 md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-6 md:z-10 ${
               isTabsStuck && isMobile ? 'bg-gray-200 py-3 shadow-md' : ''
             }`}
           >
