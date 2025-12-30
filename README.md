@@ -180,16 +180,6 @@ The app connects to a backend server at `https://reeni-server.vercel.app`
 
 ---
 
-## 📱 Screenshots
-
-<div align="center">
-  <p><em>Dashboard with transaction list</em></p>
-  <p><em>Add new transaction form</em></p>
-  <p><em>Transaction history</em></p>
-</div>
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
