@@ -1,41 +1,74 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/fav.png" />
-    <link rel="preload" href="/fav.png" as="image">
+    <link rel="preload" href="/fav.png" as="image" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Reeni — টাকা ধার-দেনা, ঋণ এবং পাওনা টাকা মনে রাখার সেরা অ্যাপ। অটোমেটিক রিমাইন্ডার এবং ট্রানজেকশন হিস্ট্রি । আপনার আর্থিক লেনদেন সহজ করুন।" />
-    
-    <meta name="keywords" content="reeni reminder, reeni tracker,reeni Mehedi, Money Manager BD, Taka Dhar Dena, Loan Tracker, Debt Manager, Money Reminder App, টাকা ধার, দেনা, পাওনা টাকা, ঋণ শোধ, বাকি খাতা, হিসাব নিকাশ, personal finance bangladesh, money tracker app" />
-    
+    <meta
+      name="description"
+      content="Reeni — টাকা ধার-দেনা, ঋণ এবং পাওনা টাকা মনে রাখার সেরা অ্যাপ। অটোমেটিক রিমাইন্ডার এবং ট্রানজেকশন হিস্ট্রি । আপনার আর্থিক লেনদেন সহজ করুন।"
+    />
+
+    <meta
+      name="keywords"
+      content="reeni reminder, reeni tracker,reeni Mehedi, Money Manager BD, Taka Dhar Dena, Loan Tracker, Debt Manager, Money Reminder App, টাকা ধার, দেনা, পাওনা টাকা, ঋণ শোধ, বাকি খাতা, হিসাব নিকাশ, personal finance bangladesh, money tracker app"
+    />
+
     <meta name="author" content="Mehedi" />
     <meta name="copyright" content="Mehedi" />
     <meta name="robots" content="index, follow" />
-    
+
     <meta name="theme-color" content="#427baa" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/fav.png" />
-    
+
     <link rel="canonical" href="https://reeni-reminder.vercel.app/" />
 
     <meta property="og:title" content="Reeni — ধার ও পাওনা টাকার সহজ হিসাব" />
-    <meta property="og:description" content="কার কাছে কত টাকা পাবেন? কাকে কত দিতে হবে? Reeni অ্যাপে সব হিসাব রাখুন নিরাপদে।" />
-    <meta property="og:image" content="https://reeni-reminder.vercel.app/logo.png" />
+    <meta
+      property="og:description"
+      content="কার কাছে কত টাকা পাবেন? কাকে কত দিতে হবে? Reeni অ্যাপে সব হিসাব রাখুন নিরাপদে।"
+    />
+    <meta
+      property="og:image"
+      content="https://reeni-reminder.vercel.app/previewww.jpg"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://reeni-reminder.vercel.app/previewww.jpg"
+    />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Reeni - ধার ও পাওনা টাকার সহজ হিসাব"
+    />
     <meta property="og:url" content="https://reeni-reminder.vercel.app/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Reeni" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Reeni — ধার ও পাওনা টাকার সহজ হিসাব" />
-    <meta name="twitter:description" content="কার কাছে কত টাকা পাবেন? কাকে কত দিতে হবে? Reeni অ্যাপে সব হিসাব রাখুন নিরাপদে।" />
-    <meta name="twitter:image" content="https://reeni-reminder.vercel.app/logo.png" />
+    <meta
+      name="twitter:description"
+      content="কার কাছে কত টাকা পাবেন? কাকে কত দিতে হবে? Reeni অ্যাপে সব হিসাব রাখুন নিরাপদে।"
+    />
+    <meta
+      name="twitter:image"
+      content="https://reeni-reminder.vercel.app/previewww.jpg"
+    />
     <meta name="twitter:domain" content="reeni-reminder.vercel.app" />
-    <meta name="twitter:url" content="https://reeni-reminder.vercel.app/" /> 
+    <meta name="twitter:url" content="https://reeni-reminder.vercel.app/" />
     <!-- DNS prefetch for faster Firebase connections -->
     <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+    <link
+      rel="preconnect"
+      href="https://identitytoolkit.googleapis.com"
+      crossorigin
+    />
     <link rel="preconnect" href="https://apis.google.com" crossorigin />
     <link rel="dns-prefetch" href="https://www.googleapis.com" />
     <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com" />
@@ -43,14 +76,20 @@
     <title>Reeni - Reminder</title>
     <!-- Inline critical CSS for instant first paint -->
     <style>
-      body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; }
-      #root { min-height: 100vh; }
-      .loading-screen { 
-        display: flex; 
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #f9fafb;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      .loading-screen {
+        display: flex;
         flex-direction: column;
-        align-items: center; 
-        justify-content: center; 
-        min-height: 100vh; 
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
         color: #666;
         gap: 1rem;
       }
@@ -60,15 +99,26 @@
         border-radius: 16px;
         display: block;
         object-fit: cover;
-        background:  #e5e8eb;
+        background: #e5e8eb;
         box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
         animation: pulse 1.5s ease-in-out infinite;
       }
       @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.05); opacity: 0.8; }
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.8;
+        }
       }
-      .loading-text { font-size: 1.25rem; color: #427baa; font-weight: 500; }
+      .loading-text {
+        font-size: 1.25rem;
+        color: #427baa;
+        font-weight: 500;
+      }
     </style>
   </head>
   <body>
@@ -76,7 +126,9 @@
       <div class="loading-screen">
         <img class="loading-logo" src="/fav.png" alt="Reeni logo" />
         <div class="loading-text">Reeni - Reminder</div>
-        <div style="color: #999; font-size: 0.875rem;">টাকা ধার-দেনা মনে রাখার সহজ উপায়</div>
+        <div style="color: #999; font-size: 0.875rem">
+          টাকা ধার-দেনা মনে রাখার সহজ উপায়
+        </div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
