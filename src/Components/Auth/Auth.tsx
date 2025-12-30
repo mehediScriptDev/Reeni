@@ -110,7 +110,7 @@ const Auth: React.FC = () => {
     <div className="min-h-screen p-4 flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-sm p-8 bg-white rounded-md shadow">
         <div className="flex items-center justify-center ">
-          <img src="/fav.png" alt="Reeni" className="w-12 h-12" />
+          <img src="/fav.png" alt="Reeni" className="w-12 h-10" />
           <h1 className="text-2xl font-semibold">Reeni</h1>
         </div>
 

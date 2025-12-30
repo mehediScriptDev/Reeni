@@ -60,7 +60,10 @@ const AddNew: React.FC = () => {
             email: user?.email, // include authenticated user's email for reminders
             amount: amountValue,
             person: (mode === 'lent' ? recipientName : fromName).trim(),
-            dueDate: givenDate,
+            // Backend expects the date when the money is due/should be returned.
+            // Use `returnDate` (ফেরত দেওয়ার তারিখ) for that purpose — `givenDate` is
+            // the date the money was given/received and should not be used as `dueDate`.
+            dueDate: returnDate || '',
             returnDate: returnDate || '',
             category: mode === 'borrowed' ? 'borrow' : 'lent',
             returned: false, // New items default to not returned
