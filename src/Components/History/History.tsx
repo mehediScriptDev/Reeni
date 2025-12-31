@@ -284,8 +284,8 @@ const History: React.FC = () => {
                           <div>{item.person || '-'}</div>
                         </div>
                         <div>
-                          <div className="text-xs text-gray-500">{activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'নেওয়ার তারিখ'}</div>
-                          <div>{item.dueDate || '-'}</div>
+                          <div className="text-xs text-gray-500">নোট</div>
+                          <div>-</div>
                         </div>
                         <div>
                           <div className="text-xs text-gray-500">ফেরত দেওয়ার তারিখ</div>
@@ -318,8 +318,8 @@ const History: React.FC = () => {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{activeTab === 'lent' ? 'দেওয়ার তারিখ' : 'নেওয়ার তারিখ'}</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">ফেরত দেওয়ার তারিখ</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নোট</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">ফেরত দেওয়ার তারিখ ছিল</th>
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অবস্থা</th>
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অ্যাকশন</th>
                       </tr>
@@ -328,9 +328,9 @@ const History: React.FC = () => {
                       {(activeTab === 'lent' ? lentItems : borrowedItems).map((item) => (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 text-sm text-gray-900">{item.amount || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.person || '-'}</td>
-                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate || '-'}</td>
-                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.returnDate || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{item.person || '-'}</td>
+                          <td className="px-6 text-center py-4 text-sm text-gray-900 whitespace-nowrap">-</td>
+                          <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">{item.returnDate || '-'}</td>
                           <td className="px-6 py-4">
                             <div className="flex items-center justify-center gap-1 text-green-600 text-sm">
                               <FaCheckCircle className="w-4 h-4" />

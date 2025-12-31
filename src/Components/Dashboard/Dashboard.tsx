@@ -402,11 +402,11 @@ const Dashboard: React.FC = () => {
       <thead className="bg-gray-200 border border-gray-200">
         <tr>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase whitespace-nowrap">টাকার পরিমাণ</th>
-          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{personHeader}</th>
-          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নেওয়ার তারিখ</th>
-          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{returnHeader}</th>
+          <th className="px-6 py-3 text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{personHeader}</th>
+          <th className="px-6 py-3  text-xs font-medium text-gray-600 uppercase whitespace-nowrap">নোট</th>
+          <th className="px-6 py-3  text-xs font-medium text-gray-600 uppercase whitespace-nowrap">{returnHeader}</th>
           <th className="px-6 py-3  text-xs font-medium text-gray-600 uppercase whitespace-nowrap text-center">অবস্থা</th>
-          <th className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অ্যাকশন</th>
+          <th className="px-6 py-3 text-xs font-medium text-gray-600 uppercase whitespace-nowrap">অ্যাকশন</th>
         </tr>
       </thead>
     );
@@ -506,8 +506,8 @@ const Dashboard: React.FC = () => {
                         <div>{item.person}</div>
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">নেওয়ার তারিখ</div>
-                        <div>{item.dueDate}</div>
+                        <div className="text-xs text-gray-500">নোট</div>
+                        <div>-</div>
                       </div>
                       <div>
                         <div className="text-xs text-gray-500">ফেরত</div>
@@ -556,7 +556,7 @@ const Dashboard: React.FC = () => {
                   <div className="grid grid-cols-4 gap-2 mb-3 text-xs text-gray-500 px-2">
                     <div className="font-medium">টাকা</div>
                     <div className="text-center">{activeTab === 'lent' ? 'কাকে' : 'কার থেকে'}</div>
-                    <div className="text-center">তারিখ</div>
+                    <div className="text-center">নোট</div>
                     <div className="text-right">{activeTab === 'lent' ? 'ফেরত দিবে' : 'ফেরত দিবো'}</div>
                   </div>
 
@@ -600,15 +600,15 @@ const Dashboard: React.FC = () => {
                     (paginatedItems).map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">{item.amount}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.person}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">{item.dueDate}</td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap  text-sm text-gray-900">{item.person}</td>
+                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">-</td>
+                        <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
                           <span className={isPastDate(item.returnDate) ? 'text-red-400 font-semibold' : 'text-gray-900'}>
                             {item.returnDate || '-'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center gap-3">
                             <select
                               value={item.returned ? 'returned' : 'not_returned'}
                               onChange={(e) => updateReturnedStatus(item.id, e.target.value === 'returned')}
@@ -629,7 +629,7 @@ const Dashboard: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-center gap-2">
                             <button 
                               onClick={() => startEdit(item)} 
                               className="bg-[#427baa] text-white p-2 rounded hover:bg-[#356a91] cursor-pointer transition-colors"
@@ -749,12 +749,13 @@ const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">নেওয়ার তারিখ</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">নোট</label>
                 <input
-                  type="date"
-                  value={editForm.dueDate}
-                  onChange={(e) => handleEditChange('dueDate', e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#427baa]"
+                  type="text"
+                  value={'-'}
+                  disabled
+                  readOnly
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100 text-gray-700"
                 />
               </div>
               <div>

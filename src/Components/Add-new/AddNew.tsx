@@ -174,14 +174,18 @@ const AddNew: React.FC = () => {
                             />
                         </div>
 
-                        <div>
+                        {/* <div>
                             <label className="block text-sm font-medium text-gray-700">দেওয়ার তারিখ</label>
                             <input type="date" value={givenDate} onChange={(e) => setGivenDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
-                        </div>
+                        </div> */}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">ফেরত দেওয়ার তারিখ</label>
                             <input type="date" required value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">নোট</label>
+                            <input type="text" value={'-'} disabled readOnly className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2 bg-gray-100 text-gray-700" />
                         </div>
                     </>
                 ) : (
@@ -196,15 +200,19 @@ const AddNew: React.FC = () => {
                             />
                         </div>
 
-                        <div>
+                        {/* <div>
                             <label className="block text-sm font-medium text-gray-700">নেয়ার তারিখ</label>
                             <input type="date" value={givenDate} onChange={(e) => setGivenDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
-                        </div>
+                        </div> */}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">ফেরত দেওয়ার তারিখ</label>
                             <input type="date" required value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2" />
                         </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">নোট</label>
+                                <input type="text" value={'-'} disabled readOnly className="mt-1 outline-none focus:outline-none focus:ring-2 focus:ring-[#427baa] border focus:border-none block w-full rounded px-3 py-2 bg-gray-100 text-gray-700" />
+                            </div>
                     </>
                 )}
 
