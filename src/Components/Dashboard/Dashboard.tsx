@@ -339,7 +339,8 @@ const Dashboard: React.FC = () => {
     setEditForm({
       amount: item.amount || '',
       person: item.person || '',
-      dueDate: item.dueDate || '',
+      // use returnDate as the source of truth for dueDate when editing
+      dueDate: item.returnDate && item.returnDate !== '' ? item.returnDate : item.dueDate || '',
       returnDate: item.returnDate || '',
       returned: item.returned,
       category: item.category,
@@ -356,7 +357,8 @@ const Dashboard: React.FC = () => {
     const payload = {
       amount: editForm.amount,
       person: editForm.person,
-      dueDate: editForm.dueDate,
+      // ensure dueDate follows returnDate (updated return date becomes due date)
+      dueDate: editForm.returnDate && editForm.returnDate !== '' ? editForm.returnDate : editForm.dueDate,
       returnDate: editForm.returnDate,
       returned: editForm.returned,
       category: editForm.category,
